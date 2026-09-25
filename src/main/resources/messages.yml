@@ -1,0 +1,47 @@
+# Uses MiniMessage format: https://docs.advntr.dev/minimessage/
+
+# Prefix prepended to every message sent via prefixed()
+prefix: "<gold>[DeathSwap]</gold> "
+
+# Admin
+config-reloaded: "%prefix%<green>Configuration reloaded successfully.</green>"
+lobby-set: "%prefix%<green>Lobby location has been set.</green>"
+
+# Command Errors
+usage: "%prefix%<red>Usage: /deathswap <join|leave|start|stop|reload|setlobby></red>"
+player-only: "<red>Only players can use this command.</red>"
+no-permission: "<red>You don't have permission to use this command.</red>"
+lobby-not-set: "%prefix%<red>Lobby is not set. Use /deathswap setlobby first.</red>"
+
+# Join / Leave
+joined: "%prefix%<green>You joined the DeathSwap game.</green>"
+already-joined: "%prefix%<red>You are already in the game.</red>"
+already-queue: "%prefix%<yellow>You are already waiting for a game.</yellow>"
+not-joined: "%prefix%<red>You are not in the game.</red>"
+left: "%prefix%<gray>You left the DeathSwap game.</gray>"
+
+# Game Start
+not-enough-players: "%prefix%<red>Not enough players. At least 2 players are required.</red>"
+worlds-busy: "%prefix%<red>No free world slots. Please try again in a moment.</red>"
+starting: "<gray>Game starting in</gray> <white><seconds></white><gray>s...</gray>"
+needs-players: "<gray>Waiting for players</gray> <white>(<players>/<required>)</white>"
+world-preparing: "%prefix%<gray><italic>Preparing the world...</italic></gray>"
+game-started: "%prefix%<green>The DeathSwap game has started!</green>"
+already-running: "<red>A game is already running.</red>"
+
+# In-Game
+countdown: "<gold><bold><seconds></bold></gold>"
+swap-message: "%prefix%<gray><italic>Swapping positions...</italic></gray>"
+eliminated: "%prefix%<red>You have been eliminated!</red>"
+player-eliminated: "%prefix%<white><player></white> <red>has been eliminated.</red>"
+deaths-left: "%prefix%<gray>Deaths remaining:</gray> <red><deaths></red>"
+winner: "%prefix%<gold><player></gold> <green>has won the DeathSwap game!</green>"
+time-up: "%prefix%<yellow>Time is up! The match has ended.</yellow>"
+
+# Game Stop
+game-stopped: "<red>The DeathSwap game has been stopped.</red>"
+not-running: "%prefix%<red>No game is currently running.</red>"
+
+# Scoreboard
+scoreboard-title: "<gold>Death Count</gold>"
+scoreboard-entry: "<white><player></white>"

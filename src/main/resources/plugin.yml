@@ -1,0 +1,24 @@
+name: DeathSwap
+version: 1.0.1
+main: dev.lokspel.deathswap.DeathSwap
+api-version: '1.21'
+softdepend: [PlaceholderAPI, packetevents]
+commands:
+  deathswap:
+    description: Main DeathSwap command
+    usage: /<command> <start|stop|join|leave|reload|setlobby>
+    aliases: [ds]
+
+permissions:
+  deathswap.start:
+    description: Start the game
+    default: op
+  deathswap.stop:
+    description: Stop the game
+    default: op
+  deathswap.reload:
+    description: Reload config
+    default: op
+  deathswap.setlobby:
+    description: Set lobby location
+    default: op
