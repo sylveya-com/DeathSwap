@@ -57,7 +57,6 @@ public class MatchManager {
 
         for (Player player : players) {
             playerUuids.add(player.getUniqueId());
-            player.sendMessage(messages.prefixed("world-preparing"));
         }
 
         this.gameWorld = gameWorld;
@@ -155,7 +154,7 @@ public class MatchManager {
         }
 
         if (teleport) {
-            plugin.getWorldPool().teleportToLobby(player);
+            player.teleport(cfg.lobby().get());
         }
 
         refreshScoreboard();
@@ -288,7 +287,7 @@ public class MatchManager {
         scoreboard.remove(playerUuids);
         for (Player player : getOnlinePlayers()) {
             states.restore(player);
-            plugin.getWorldPool().teleportToLobby(player);
+            player.teleport(cfg.lobby().get());
         }
 
         plugin.getWorldPool().deleteWorld(gameWorld);

@@ -7,6 +7,7 @@ import org.bukkit.World;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -47,6 +48,56 @@ final class WorldReset {
     }
 
     /**
+     * Unloads and deletes an instance's worlds without reloading them, so the
+     * instance is not reused. Used when every match gets a brand-new world and
+     * the old one has to disappear from disk entirely.
+     *
+     * <p>The instance stays tracked so a player still respawning inside the
+     * deleted world is recognized as being in a game world. It holds no world
+     * handles anymore, so it is never handed out again.
+     */
+    void discard(WorldInstance instance) {
+        World[] worlds = unloadAll(instance);
+
+        CompletableFuture.runAsync(() -> {
+            for (World world : worlds) {
+                if (world == null) continue;
+
+                deleteFolder(world.getWorldFolder().toPath());
+            }
+        });
+    }
+
+    /**
+     * Synchronous counterpart of {@link #discard}, used when the plugin is
+     * already shutting down and the async deletion would never run.
+     */
+    void discardNow(WorldInstance instance) {
+        for (World world : unloadAll(instance)) {
+            if (world == null) continue;
+
+            deleteFolder(world.getWorldFolder().toPath());
+        }
+    }
+
+    /**
+     * Unloads every world of an instance and returns the handles it held, which
+     * stay usable for folder access after the instance forgets them.
+     */
+    private World[] unloadAll(WorldInstance instance) {
+        World[] worlds = instance.allWorlds();
+
+        for (World world : worlds) {
+            if (world != null) {
+                Bukkit.unloadWorld(world, false);
+            }
+        }
+
+        instance.markResetting();
+        return worlds;
+    }
+
+    /**
      * Synchronously unloads and clears an instance's worlds. Used on shutdown,
      * where an asynchronous reset would not finish before the server exits.
      */
@@ -64,6 +115,20 @@ final class WorldReset {
 
         try (var files = Files.list(regionFolder)) {
             files.forEach(child -> {
+                try {
+                    Files.deleteIfExists(child);
+                } catch (IOException ignored) {
+                }
+            });
+        } catch (IOException ignored) {
+        }
+    }
+
+    private void deleteFolder(Path folder) {
+        if (!Files.isDirectory(folder)) return;
+
+        try (var paths = Files.walk(folder)) {
+            paths.sorted(Comparator.reverseOrder()).forEach(child -> {
                 try {
                     Files.deleteIfExists(child);
                 } catch (IOException ignored) {

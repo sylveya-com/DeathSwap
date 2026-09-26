@@ -89,7 +89,11 @@ public class GameManager {
         World world = plugin.getWorldPool().createGameWorld();
         if (world == null) {
             if (!busyNotified) {
-                var msg = plugin.getMainConfig().messages().prefixed("worlds-busy");
+                var messages = plugin.getMainConfig().messages();
+                var msg = plugin.getWorldPool().isGenerating()
+                        ? messages.prefixed("world-preparing")
+                        : messages.prefixed("worlds-busy");
+
                 for (Player player : players) {
                     player.sendMessage(msg);
                 }

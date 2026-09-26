@@ -20,6 +20,7 @@ Players join a lobby and are sent into a fresh temporary world when the match st
 - Configurable PvP and sounds
 - Fresh temporary world for every match
 - Automatic world deletion after the match
+- Optional brand-new world generated when the game starts, with no limit on simultaneous matches
 - Optional per-match nether and end dimensions
 - Per-world random respawn radius around spawn
 

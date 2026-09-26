@@ -34,7 +34,7 @@ public class PlayerRespawnListener implements Listener {
         // its world is being torn down (e.g. eliminated in the final seconds).
         // Respawn them in the lobby instead of into the deleted world's void.
         if (plugin.getWorldPool().isGameWorld(event.getPlayer().getWorld())) {
-            event.setRespawnLocation(plugin.getWorldPool().lobbyLocation());
+            event.setRespawnLocation(plugin.getMainConfig().lobby().get());
         }
     }
 }

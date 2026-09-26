@@ -2,6 +2,7 @@ package dev.lokspel.deathswap.world;
 
 import dev.lokspel.deathswap.DeathSwap;
 import dev.lokspel.deathswap.util.ReflectionUtil;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
 import org.bukkit.Location;
@@ -17,6 +18,10 @@ import java.util.concurrent.ThreadLocalRandom;
  * Facade over a pool of reusable game worlds. Each world can host one
  * concurrent match; worlds are created at startup and their chunks reset when a
  * match ends.
+ *
+ * <p>When {@code worlds.generate-on-start} is enabled the pool is skipped
+ * entirely: every match gets a brand-new world generated when the match starts,
+ * so the number of simultaneous matches is not capped by {@code worlds.count}.
  */
 public class WorldPool {
 
@@ -25,35 +30,64 @@ public class WorldPool {
 
     private final DeathSwap plugin;
     private final WorldReset reset;
+    private final WorldLoader loader;
+    private final String namePrefix;
+    private final boolean generateDimensions;
+    private final boolean generateOnStart;
     private final List<WorldInstance> instances = new ArrayList<>();
+    private int generatedCount;
+
+    /**
+     * Whether a world is currently being generated, either by the startup
+     * warm-up or by {@code generate-on-start}.
+     */
+    @Getter
+    private boolean generating;
 
     public WorldPool(DeathSwap plugin) {
         this.plugin = plugin;
         this.reset = new WorldReset(plugin);
+        this.loader = new WorldLoader();
+        this.namePrefix = plugin.getMainConfig().worlds().namePrefix();
+        this.generateDimensions = plugin.getMainConfig().worlds().generateDimensions();
+        this.generateOnStart = plugin.getMainConfig().worlds().generateOnStart();
+
+        if (generateOnStart) {
+            return;
+        }
 
         int count = Math.max(1, plugin.getMainConfig().worlds().count());
-        String prefix = plugin.getMainConfig().worlds().namePrefix();
-        boolean dimensions = plugin.getMainConfig().worlds().generateDimensions();
-
-        WorldLoader loader = new WorldLoader();
 
         for (int i = 0; i < count; i++) {
-            instances.add(new WorldInstance(
-                    prefix + "_" + i,
-                    loader,
-                    dimensions
-            ));
+            instances.add(newInstance(i));
         }
 
         warmUp();
     }
 
+    private WorldInstance newInstance(int index) {
+        return new WorldInstance(
+                namePrefix + "_" + index,
+                loader,
+                generateDimensions
+        );
+    }
+
     /**
-     * Acquires a free reusable world.
+     * Acquires a world for a new match.
      *
-     * @return the acquired world, or {@code null} if all worlds are busy
+     * <p>With {@code generate-on-start} enabled a brand-new world is generated
+     * here and returned once its spawn area is ready. Since generation cannot
+     * finish within this call, {@code null} is returned while it runs and the
+     * match start has to be retried.
+     *
+     * @return the acquired world, or {@code null} if none is available yet
      */
     public World createGameWorld() {
+        if (generateOnStart) {
+            return createFreshWorld();
+        }
+
         WorldInstance instance = findReadyInstance();
 
         if (instance == null) {
@@ -65,11 +99,37 @@ public class WorldPool {
     }
 
     /**
+     * Generates a brand-new world for a match that is about to start, reusing
+     * an already prepared one when several joins queue up at once.
+     */
+    private World createFreshWorld() {
+        WorldInstance ready = findReadyInstance();
+
+        if (ready != null) {
+            ready.acquire();
+            return ready.getWorld();
+        }
+
+        if (!generating) {
+            WorldInstance instance = newInstance(generatedCount++);
+            instances.add(instance);
+
+            generating = true;
+            Bukkit.getScheduler().runTask(plugin, () -> loadInstance(instance, () -> generating = false));
+        }
+
+        return null;
+    }
+
+    /**
      * Releases a world back into the pool.
      *
      * <p>The players are first evacuated to the lobby. The actual world reset
      * is delayed by one tick to ensure that the teleport is completed before
      * the world is unloaded.
+     *
+     * <p>With {@code generate-on-start} the world is not recycled but deleted
+     * outright, since the next match gets a brand-new one.
      */
     public void deleteWorld(World world) {
         if (world == null) {
@@ -83,21 +143,14 @@ public class WorldPool {
 
             if (!plugin.isEnabled()) {
                 evacuate(instance);
-                reset.clearNow(instance);
+                tearDownNow(instance);
                 return;
             }
 
             Bukkit.getScheduler().runTask(plugin, () -> {
                 evacuate(instance);
 
-                Bukkit.getScheduler().runTaskLater(
-                        plugin,
-                        () -> reset.reset(
-                                instance,
-                                () -> loadInstance(instance)
-                        ),
-                        1L
-                );
+                Bukkit.getScheduler().runTaskLater(plugin, () -> tearDown(instance), 1L);
             });
 
             return;
@@ -105,11 +158,38 @@ public class WorldPool {
     }
 
     /**
+     * Tears a released instance down one tick after the evacuation, either
+     * recycling it back into the pool or deleting it outright.
+     */
+    private void tearDown(WorldInstance instance) {
+        if (generateOnStart) {
+            reset.discard(instance);
+            instances.remove(instance);
+            return;
+        }
+
+        reset.reset(instance, () -> loadInstance(instance));
+    }
+
+    /**
+     * Synchronous counterpart of {@link #tearDown}, used when the plugin is
+     * already shutting down.
+     */
+    private void tearDownNow(WorldInstance instance) {
+        if (generateOnStart) {
+            reset.discardNow(instance);
+            return;
+        }
+
+        reset.clearNow(instance);
+    }
+
+    /**
      * Teleports any player still inside the instance's worlds back to the
      * lobby before the worlds are unloaded.
      */
     private void evacuate(WorldInstance instance) {
-        Location lobby = lobbyLocation();
+        Location lobby = plugin.getMainConfig().lobby().get();
 
         for (World world : instance.allWorlds()) {
             if (world == null) {
@@ -120,14 +200,6 @@ public class WorldPool {
                 player.teleport(lobby);
             }
         }
-    }
-
-    public void teleportToLobby(Player player) {
-        player.teleport(lobbyLocation());
-    }
-
-    public Location lobbyLocation() {
-        return plugin.getMainConfig().lobby().get();
     }
 
     /**
@@ -145,11 +217,21 @@ public class WorldPool {
 
     /**
      * Clears all pooled worlds synchronously during shutdown.
+     *
+     * <p>With {@code generate-on-start} the world folders are deleted instead
+     * of kept, since no match will ever reuse them.
      */
     public void shutdown() {
         for (WorldInstance instance : instances) {
+            if (generateOnStart) {
+                reset.discardNow(instance);
+                continue;
+            }
+
             reset.clearNow(instance);
         }
+
+        instances.clear();
     }
 
     /**
@@ -275,11 +357,13 @@ public class WorldPool {
      * </pre>
      */
     private void warmUp() {
+        generating = true;
         warmUpNext(0);
     }
 
     private void warmUpNext(int index) {
         if (index >= instances.size()) {
+            generating = false;
             return;
         }
 

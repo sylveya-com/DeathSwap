@@ -32,6 +32,7 @@ sounds:
 
 worlds:
   count: 5                # Number of persistent reusable worlds (each = one concurrent match)
+  generate-on-start: true   # Generate a brand-new world when the game starts instead of reusing a pool (ignores count, no limit on worlds)
   pre-generate-radius: 7  # Pre-generate spawn chunks around the spawn, 0 = off
   spawn-radius: 100       # Per-world random respawn radius around spawn, 0 = exact spawn
   border: 3000             # World border size in blocks (centered on spawn), 0 = disabled

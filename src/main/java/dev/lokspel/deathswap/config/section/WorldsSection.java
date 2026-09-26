@@ -21,6 +21,10 @@ public class WorldsSection {
         return config().getInt(PATH + "count", 5);
     }
 
+    public boolean generateOnStart() {
+        return config().getBoolean(PATH + "generate-on-start", false);
+    }
+
     public int preGenerateRadius() {
         return config().getInt(PATH + "pre-generate-radius", 7);
     }
