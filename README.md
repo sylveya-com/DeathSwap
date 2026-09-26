@@ -8,21 +8,16 @@ Players join a lobby and are sent into a fresh temporary world when the match st
 
 ## » Features
 
-- Auto-start lobby with configurable player requirements
+- Configurable lobby, countdown and match length
 - Timed position swaps with warning countdowns
-- Configurable lives and death tracking
-- Last-player-standing win condition
-- Optional match time limit with winner-by-fewest-deaths
-- Tie messaging when players have the same death count
-- Toggleable sidebar scoreboard and HUD countdowns
-- Match-scoped chat, death, and advancement messages
-- Optional in-match tab-list hiding with PacketEvents
-- Configurable PvP and sounds
-- Fresh temporary world for every match
-- Automatic world deletion after the match
-- Optional brand-new world generated when the game starts, with no limit on simultaneous matches
-- Optional per-match nether and end dimensions
-- Per-world random respawn radius around spawn
+- Configurable lives, PvP and death tracking
+- Last-player-standing or time-limit win conditions
+- Reusable world pool or a brand-new world per match
+- Optional nether and end dimensions per match
+- Per-world spawn radius and world border
+- Toggleable scoreboard, actionbar and sounds
+- Match-scoped chat, death and advancement messages
+- Optional tab-list hiding with PacketEvents
 
 ## » Commands
 
