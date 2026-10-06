@@ -22,10 +22,6 @@ public class MatchStartEvent extends Event {
         this.world = world;
     }
 
-    public static HandlerList getHandlerList() {
-        return HANDLERS;
-    }
-
     @Override
     public @NotNull HandlerList getHandlers() {
         return HANDLERS;

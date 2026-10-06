@@ -22,14 +22,6 @@ public class MatchEndEvent extends Event {
         this.winner = winner;
     }
 
-    public boolean hasWinner() {
-        return winner != null;
-    }
-
-    public static HandlerList getHandlerList() {
-        return HANDLERS;
-    }
-
     @Override
     public @NotNull HandlerList getHandlers() {
         return HANDLERS;
