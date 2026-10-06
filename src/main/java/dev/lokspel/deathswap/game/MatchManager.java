@@ -7,7 +7,6 @@ import dev.lokspel.deathswap.config.MainConfig;
 import dev.lokspel.deathswap.config.MessagesConfig;
 import dev.lokspel.deathswap.scoreboard.MatchScoreboard;
 import dev.lokspel.deathswap.game.player.PlayerState;
-import dev.lokspel.deathswap.game.player.PlayerStateManager;
 import dev.lokspel.deathswap.util.PlayerUtil;
 import dev.lokspel.deathswap.util.SoundUtil;
 import org.bukkit.Bukkit;
@@ -19,9 +18,11 @@ import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.ScoreboardManager;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -34,7 +35,7 @@ public class MatchManager {
     private final World gameWorld;
     private final Set<UUID> playerUuids;
     private final Set<UUID> spectators;
-    private final PlayerStateManager states;
+    private final Map<UUID, PlayerState> states;
     private final DeathManager deaths;
     private final SwapManager swap;
     private final MatchScoreboard scoreboard;
@@ -49,7 +50,7 @@ public class MatchManager {
         this.onEnd = onEnd;
         this.playerUuids = new HashSet<>();
         this.spectators = new HashSet<>();
-        this.states = new PlayerStateManager();
+        this.states = new HashMap<>();
         this.deaths = new DeathManager();
         this.swap = new SwapManager(plugin);
         this.scoreboard = new MatchScoreboard(plugin);
@@ -63,7 +64,7 @@ public class MatchManager {
 
         for (Player player : players) {
             player.teleport(gameWorld.getSpawnLocation());
-            states.save(player);
+            states.put(player.getUniqueId(), PlayerState.capture(player));
             PlayerState.resetForMatch(player);
         }
 
@@ -286,7 +287,10 @@ public class MatchManager {
 
         scoreboard.remove(playerUuids);
         for (Player player : getOnlinePlayers()) {
-            states.restore(player);
+            PlayerState state = states.remove(player.getUniqueId());
+            if (state != null) {
+                state.restore(player);
+            }
             player.teleport(cfg.lobby().get());
         }
 
