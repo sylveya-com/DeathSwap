@@ -66,7 +66,12 @@ public final class PlayerState {
         player.setFoodLevel(20);
         player.setSaturation(5.0f);
         player.setFireTicks(0);
+        player.setFreezeTicks(0);
         player.setRemainingAir(player.getMaximumAir());
+
+        for (var effect : player.getActivePotionEffects()) {
+            player.removePotionEffect(effect.getType());
+        }
     }
 
     public void restore(Player player) {
