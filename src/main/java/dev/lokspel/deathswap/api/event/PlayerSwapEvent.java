@@ -24,6 +24,10 @@ public class PlayerSwapEvent extends Event implements Cancellable {
         this.second = second;
     }
 
+    public static HandlerList getHandlerList() {
+        return HANDLERS;
+    }
+
     @Override
     public @NotNull HandlerList getHandlers() {
         return HANDLERS;
