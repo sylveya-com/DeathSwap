@@ -21,6 +21,7 @@ import dev.lokspel.deathswap.listener.PlayerAdvancementDoneListener;
 import dev.lokspel.deathswap.listener.PlayerDeathListener;
 import dev.lokspel.deathswap.listener.PlayerQuitListener;
 import dev.lokspel.deathswap.listener.PlayerRespawnListener;
+import dev.lokspel.deathswap.listener.PlayerTeleportListener;
 import dev.lokspel.deathswap.listener.WorldInitListener;
 import dev.lokspel.deathswap.game.GameManager;
 import dev.lokspel.deathswap.world.WorldPool;
@@ -85,6 +86,7 @@ public class DeathSwap extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerAdvancementDoneListener(this), this);
         getServer().getPluginManager().registerEvents(new EntityDamageListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerRespawnListener(this), this);
+        getServer().getPluginManager().registerEvents(new PlayerTeleportListener(this), this);
 
         new DeathSwapAPI(this);
 

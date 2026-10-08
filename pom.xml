@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>dev.lokspel</groupId>
   <artifactId>DeathSwap</artifactId>
-  <version>1.0.5</version>
+  <version>1.0.6</version>
   <name>DeathSwap</name>
 
   <properties>
@@ -14,7 +14,7 @@
     <spigot.version>26.2-R0.1-SNAPSHOT</spigot.version>
     <placeholderapi.version>2.12.3</placeholderapi.version>
     <bstats.version>3.2.1</bstats.version>
-    <packetevents.version>2.13.0</packetevents.version>
+    <packetevents.version>2.14.0</packetevents.version>
     <adventure.version>5.2.0</adventure.version>
 
     <!-- Build tooling -->

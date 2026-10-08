@@ -166,6 +166,14 @@ public class MatchManager {
         return playerUuids.contains(uuid);
     }
 
+    public World getGameWorld() {
+        return gameWorld;
+    }
+
+    public boolean isActive() {
+        return !cleanedUp;
+    }
+
     public boolean isSpectator(UUID uuid) {
         return spectators.contains(uuid);
     }
