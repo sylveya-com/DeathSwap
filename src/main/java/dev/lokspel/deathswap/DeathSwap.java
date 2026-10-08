@@ -27,7 +27,6 @@ import dev.lokspel.deathswap.game.GameManager;
 import dev.lokspel.deathswap.world.WorldPool;
 import lombok.Getter;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bstats.bukkit.Metrics;
 
 import java.util.List;
 import java.util.Objects;
