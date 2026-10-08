@@ -62,8 +62,6 @@ public class DeathSwap extends JavaPlugin {
             playerHider = new PlayerHider(this);
         }
 
-        new Metrics(this, 33306);
-
         getServer().getPluginManager().registerEvents(new WorldInitListener(this), this);
         worldPool = new WorldPool(this);
         gameManager = new GameManager(this);

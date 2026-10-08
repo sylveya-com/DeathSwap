@@ -13,7 +13,6 @@
     <!-- Runtime dependencies -->
     <spigot.version>26.2-R0.1-SNAPSHOT</spigot.version>
     <placeholderapi.version>2.12.3</placeholderapi.version>
-    <bstats.version>3.2.1</bstats.version>
     <packetevents.version>2.14.0</packetevents.version>
     <adventure.version>5.2.0</adventure.version>
 
@@ -74,12 +73,6 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.bstats</groupId>
-      <artifactId>bstats-bukkit</artifactId>
-      <version>${bstats.version}</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
       <groupId>com.github.retrooper</groupId>
       <artifactId>packetevents-spigot</artifactId>
       <version>${packetevents.version}</version>
@@ -125,10 +118,6 @@
             <configuration>
               <createDependencyReducedPom>false</createDependencyReducedPom>
               <relocations>
-                <relocation>
-                  <pattern>org.bstats</pattern>
-                  <shadedPattern>dev.lokspel.deathswap.thirdparty</shadedPattern>
-                </relocation>
                 <relocation>
                   <pattern>net.kyori</pattern>
                   <shadedPattern>dev.lokspel.deathswap.thirdparty.kyori</shadedPattern>
