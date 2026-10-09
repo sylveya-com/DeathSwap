@@ -14,6 +14,7 @@ public class MainConfig {
     private final GameSection game;
     private final WorldsSection worlds;
     private final SoundsSection sounds;
+    private final BackedConfig backed;
     private final LobbySection lobby;
     private final HideSection hide;
     private final DisplaySection display;
@@ -25,7 +26,8 @@ public class MainConfig {
         this.game = new GameSection(plugin);
         this.worlds = new WorldsSection(plugin);
         this.sounds = new SoundsSection(plugin);
-        this.lobby = new LobbySection(plugin);
+        this.backed = new BackedConfig(plugin);
+        this.lobby = new LobbySection(backed);
         this.hide = new HideSection(plugin);
         this.display = new DisplaySection(plugin);
         this.messages = new MessagesConfig(plugin);
@@ -33,6 +35,7 @@ public class MainConfig {
 
     public void load() {
         plugin.reloadConfig();
+        backed.reload();
         messages = new MessagesConfig(plugin);
     }
 
