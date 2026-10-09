@@ -155,7 +155,7 @@ public class MatchManager {
         }
 
         if (teleport) {
-            player.teleport(cfg.lobby().get());
+            player.teleport(cfg.backed().location("lobby"));
         }
 
         refreshScoreboard();
@@ -299,7 +299,7 @@ public class MatchManager {
             if (state != null) {
                 state.restore(player);
             }
-            player.teleport(cfg.lobby().get());
+            player.teleport(cfg.backed().location("lobby"));
         }
 
         plugin.getWorldPool().deleteWorld(gameWorld);

@@ -189,7 +189,7 @@ public class WorldPool {
      * lobby before the worlds are unloaded.
      */
     private void evacuate(WorldInstance instance) {
-        Location lobby = plugin.getMainConfig().lobby().get();
+        Location lobby = plugin.getMainConfig().backed().location("lobby");
 
         for (World world : instance.allWorlds()) {
             if (world == null) {

@@ -35,7 +35,7 @@ public class GameManager {
             player.sendMessage(plugin.getMainConfig().messages().prefixed("already-queue"));
             return;
         }
-        if (plugin.getMainConfig().lobby().isNotSet()) {
+        if (!plugin.getMainConfig().backed().isSet("lobby")) {
             player.sendMessage(plugin.getMainConfig().messages().prefixed("lobby-not-set"));
             return;
         }
@@ -72,7 +72,7 @@ public class GameManager {
 
     public boolean forceStart() {
         if (lobby.size() < 2) return false;
-        if (plugin.getMainConfig().lobby().isNotSet()) return false;
+        if (!plugin.getMainConfig().backed().isSet("lobby")) return false;
 
         lobby.cancelTask();
         createMatch();

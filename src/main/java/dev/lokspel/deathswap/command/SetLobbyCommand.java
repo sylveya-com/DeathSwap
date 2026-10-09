@@ -23,7 +23,7 @@ public class SetLobbyCommand implements SubCommand {
             sender.sendMessage(config.messages().get("no-permission"));
             return true;
         }
-        config.lobby().set(player.getLocation());
+        config.backed().setLocation("lobby", player.getLocation());
         sender.sendMessage(config.messages().prefixed("lobby-set"));
         return true;
     }

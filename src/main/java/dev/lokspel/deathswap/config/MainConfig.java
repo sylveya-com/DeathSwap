@@ -4,7 +4,6 @@ import dev.lokspel.deathswap.DeathSwap;
 import dev.lokspel.deathswap.config.section.DisplaySection;
 import dev.lokspel.deathswap.config.section.GameSection;
 import dev.lokspel.deathswap.config.section.HideSection;
-import dev.lokspel.deathswap.config.section.LobbySection;
 import dev.lokspel.deathswap.config.section.SoundsSection;
 import dev.lokspel.deathswap.config.section.WorldsSection;
 
@@ -15,7 +14,6 @@ public class MainConfig {
     private final WorldsSection worlds;
     private final SoundsSection sounds;
     private final BackedConfig backed;
-    private final LobbySection lobby;
     private final HideSection hide;
     private final DisplaySection display;
     private MessagesConfig messages;
@@ -27,7 +25,6 @@ public class MainConfig {
         this.worlds = new WorldsSection(plugin);
         this.sounds = new SoundsSection(plugin);
         this.backed = new BackedConfig(plugin);
-        this.lobby = new LobbySection(backed);
         this.hide = new HideSection(plugin);
         this.display = new DisplaySection(plugin);
         this.messages = new MessagesConfig(plugin);
@@ -51,8 +48,8 @@ public class MainConfig {
         return sounds;
     }
 
-    public LobbySection lobby() {
-        return lobby;
+    public BackedConfig backed() {
+        return backed;
     }
 
     public HideSection hide() {
