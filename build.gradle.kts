@@ -11,12 +11,15 @@ repositories {
     maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
     maven("https://repo.codemc.io/repository/maven-releases/")
     maven("https://repo.helpch.at/releases/")
+    maven("https://repo.faststats.dev/releases")
 }
 
 dependencies {
     compileOnly("org.spigotmc:spigot-api:26.2-R0.1-SNAPSHOT")
     compileOnly("me.clip:placeholderapi:2.12.3")
     compileOnly("com.github.retrooper:packetevents-spigot:2.14.0")
+
+    implementation("dev.faststats.metrics:bukkit:0.30.2")
 
     implementation("net.kyori:adventure-api:5.2.0")
     implementation("net.kyori:adventure-text-serializer-legacy:5.2.0")

@@ -5,6 +5,8 @@ import dev.lokspel.deathswap.util.SoftDependUtil;
 import dev.lokspel.deathswap.util.entityhider.PlayerHider;
 import com.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
+import dev.faststats.Metrics;
+import dev.faststats.bukkit.BukkitContext;
 import dev.lokspel.deathswap.util.placeholderapi.PlayerExpansion;
 import dev.lokspel.deathswap.command.CommandDispatcher;
 import dev.lokspel.deathswap.command.CommandDispatcher.RegisteredCommand;
@@ -40,6 +42,10 @@ public class DeathSwap extends JavaPlugin {
     private WorldPool worldPool;
     private GameManager gameManager;
     private PlayerHider playerHider;
+
+    private final BukkitContext fastStatsContext = new BukkitContext.Factory(this, "e4269c0474f634d0ab87b81ebf5cdb9f")
+            .metrics(Metrics.Factory::create)
+            .create();
 
     @Override
     public void onLoad() {
@@ -91,10 +97,13 @@ public class DeathSwap extends JavaPlugin {
             new PlayerExpansion(this, "deathswap").register();
             new PlayerExpansion(this, "ds").register();
         }
+
+        fastStatsContext.ready();
     }
 
     @Override
     public void onDisable() {
+        fastStatsContext.shutdown();
         if (gameManager != null) {
             gameManager.stop();
         }
