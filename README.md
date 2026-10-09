@@ -93,7 +93,7 @@ The expansion is available under both `deathswap` and `ds`.
 ## » Build
 
 ```bash
-mvn clean package
+gradlew build
 ```
 
 Enjoy DeathSwap!

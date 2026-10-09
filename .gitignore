@@ -1,6 +1,7 @@
 # Maven
 target/
 *.jar
+!gradle/wrapper/gradle-wrapper.jar
 *.war
 pom.xml.tag
 pom.xml.releaseBackup
