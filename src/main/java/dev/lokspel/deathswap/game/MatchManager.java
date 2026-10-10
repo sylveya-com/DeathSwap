@@ -10,6 +10,7 @@ import dev.lokspel.deathswap.game.player.PlayerState;
 import dev.lokspel.deathswap.util.CommandUtil;
 import dev.lokspel.deathswap.util.PlayerUtil;
 import dev.lokspel.deathswap.util.SoundUtil;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -33,6 +34,7 @@ public class MatchManager {
     private final DeathSwap plugin;
     private final MainConfig cfg;
     private final MessagesConfig messages;
+    @Getter
     private final World gameWorld;
     private final Set<UUID> playerUuids;
     private final Set<UUID> spectators;
@@ -95,15 +97,23 @@ public class MatchManager {
     public Location onPlayerRespawn(Player player) {
         if (!playerUuids.contains(player.getUniqueId())) return null;
 
-        if (spectators.contains(player.getUniqueId())) {
+        boolean eliminated = spectators.contains(player.getUniqueId());
+        if (eliminated) {
             player.setGameMode(GameMode.SPECTATOR);
+            CommandUtil.run(cfg.commands().onMatchEnd(), player);
         }
 
         Location location = randomSpawn();
         refreshScoreboard();
 
-        if (spectators.contains(player.getUniqueId())) {
+        if (eliminated) {
             checkWinner();
+            if (cleanedUp) {
+                Location lobby = cfg.backed().location("lobby");
+                if (lobby != null) {
+                    return lobby;
+                }
+            }
         }
         return location;
     }
@@ -116,7 +126,7 @@ public class MatchManager {
     private Location randomSpawn() {
         Location spawn = gameWorld.getSpawnLocation();
         int r = Math.max(0, cfg.worlds().spawnRadius());
-        if (r <= 0) return spawn.clone();
+        if (r == 0) return spawn.clone();
 
         ThreadLocalRandom random = ThreadLocalRandom.current();
         int x = spawn.getBlockX() + random.nextInt(-r, r + 1);
@@ -146,8 +156,8 @@ public class MatchManager {
     public void leave(Player player, boolean teleport) {
         if (!playerUuids.contains(player.getUniqueId())) return;
 
+        boolean eliminated = spectators.remove(player.getUniqueId());
         playerUuids.remove(player.getUniqueId());
-        spectators.remove(player.getUniqueId());
         deaths.remove(player.getUniqueId());
 
         ScoreboardManager manager = Bukkit.getScoreboardManager();
@@ -156,10 +166,15 @@ public class MatchManager {
         }
 
         if (teleport) {
-            player.teleport(cfg.backed().location("lobby"));
+            Location lobby = cfg.backed().location("lobby");
+            if (lobby != null) {
+                player.teleport(lobby);
+            }
         }
 
-        CommandUtil.run(cfg.commands().onMatchEnd(), player);
+        if (!eliminated) {
+            CommandUtil.run(cfg.commands().onMatchEnd(), player);
+        }
 
         refreshScoreboard();
         checkWinner();
@@ -167,10 +182,6 @@ public class MatchManager {
 
     public boolean contains(UUID uuid) {
         return playerUuids.contains(uuid);
-    }
-
-    public World getGameWorld() {
-        return gameWorld;
     }
 
     public boolean isActive() {
@@ -297,13 +308,18 @@ public class MatchManager {
         cleanedUp = true;
 
         scoreboard.remove(playerUuids);
+        Location lobby = cfg.backed().location("lobby");
         for (Player player : getOnlinePlayers()) {
             PlayerState state = states.remove(player.getUniqueId());
             if (state != null) {
                 state.restore(player);
             }
-            player.teleport(cfg.backed().location("lobby"));
-            CommandUtil.run(cfg.commands().onMatchEnd(), player);
+            if (lobby != null) {
+                player.teleport(lobby);
+            }
+            if (!spectators.contains(player.getUniqueId())) {
+                CommandUtil.run(cfg.commands().onMatchEnd(), player);
+            }
         }
 
         plugin.getWorldPool().deleteWorld(gameWorld);
