@@ -103,3 +103,24 @@ worlds:
   border: 3000
   name-prefix: ds
   generate-dimensions: true
+
+
+# ============================================
+#            End of Match Commands
+# ============================================
+# Commands run after a player leaves a match
+# and returns to the lobby. Prefix with
+# [player] to run as the player or [console]
+# for the console (default).
+# Placeholders: %player%, %uuid%.
+#
+# Example:
+#   on-match-end:
+#     - command: "[player] practice lobby load"
+#       bypass-permissions:
+#         - "zpp.practice.lobby"
+#     - command: "[console] say Match finished"
+# ============================================
+
+commands:
+  on-match-end: []

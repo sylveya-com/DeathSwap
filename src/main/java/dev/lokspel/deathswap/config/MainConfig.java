@@ -1,6 +1,7 @@
 package dev.lokspel.deathswap.config;
 
 import dev.lokspel.deathswap.DeathSwap;
+import dev.lokspel.deathswap.config.section.CommandsSection;
 import dev.lokspel.deathswap.config.section.DisplaySection;
 import dev.lokspel.deathswap.config.section.GameSection;
 import dev.lokspel.deathswap.config.section.HideSection;
@@ -16,6 +17,7 @@ public class MainConfig {
     private final BackedConfig backed;
     private final HideSection hide;
     private final DisplaySection display;
+    private final CommandsSection commands;
     private MessagesConfig messages;
 
     public MainConfig(DeathSwap plugin) {
@@ -27,6 +29,7 @@ public class MainConfig {
         this.backed = new BackedConfig(plugin);
         this.hide = new HideSection(plugin);
         this.display = new DisplaySection(plugin);
+        this.commands = new CommandsSection(plugin);
         this.messages = new MessagesConfig(plugin);
     }
 
@@ -58,6 +61,10 @@ public class MainConfig {
 
     public DisplaySection display() {
         return display;
+    }
+
+    public CommandsSection commands() {
+        return commands;
     }
 
     public MessagesConfig messages() {

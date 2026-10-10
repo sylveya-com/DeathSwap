@@ -7,6 +7,7 @@ import dev.lokspel.deathswap.config.MainConfig;
 import dev.lokspel.deathswap.config.MessagesConfig;
 import dev.lokspel.deathswap.scoreboard.MatchScoreboard;
 import dev.lokspel.deathswap.game.player.PlayerState;
+import dev.lokspel.deathswap.util.CommandUtil;
 import dev.lokspel.deathswap.util.PlayerUtil;
 import dev.lokspel.deathswap.util.SoundUtil;
 import org.bukkit.Bukkit;
@@ -158,6 +159,8 @@ public class MatchManager {
             player.teleport(cfg.backed().location("lobby"));
         }
 
+        CommandUtil.run(cfg.commands().onMatchEnd(), player);
+
         refreshScoreboard();
         checkWinner();
     }
@@ -300,6 +303,7 @@ public class MatchManager {
                 state.restore(player);
             }
             player.teleport(cfg.backed().location("lobby"));
+            CommandUtil.run(cfg.commands().onMatchEnd(), player);
         }
 
         plugin.getWorldPool().deleteWorld(gameWorld);
