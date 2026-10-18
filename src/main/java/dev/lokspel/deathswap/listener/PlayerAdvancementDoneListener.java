@@ -1,6 +1,7 @@
 package dev.lokspel.deathswap.listener;
 
 import dev.lokspel.deathswap.DeathSwap;
+import dev.lokspel.deathswap.config.DeathSwapConfig;
 import dev.lokspel.deathswap.game.GameManager;
 import dev.lokspel.deathswap.game.MatchManager;
 import dev.lokspel.deathswap.util.ReflectionUtil;
@@ -50,7 +51,7 @@ public final class PlayerAdvancementDoneListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void handle(PlayerAdvancementDoneEvent event) {
-        if (!plugin.getMainConfig().hide().isolateAchievements()
+        if (!DeathSwapConfig.settings().getHide().isIsolateAchievements()
                 || getMessageMethod == null
                 || setMessageMethod == null
                 || sendMessageMethod == null) {

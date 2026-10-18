@@ -1,7 +1,7 @@
 package dev.lokspel.deathswap.util;
 
 import dev.lokspel.deathswap.DeathSwap;
-import dev.lokspel.deathswap.config.section.CommandsSection;
+import dev.lokspel.deathswap.config.settings.CommandEntry;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionAttachment;
@@ -17,7 +17,7 @@ public final class CommandUtil {
     private CommandUtil() {
     }
 
-    public static void run(List<CommandsSection.Entry> entries, Player player) {
+    public static void run(List<CommandEntry> entries, Player player) {
         if (entries.isEmpty()) {
             return;
         }
@@ -25,7 +25,7 @@ public final class CommandUtil {
             if (!player.isOnline()) {
                 return;
             }
-            for (CommandsSection.Entry entry : entries) {
+            for (CommandEntry entry : entries) {
                 String command = entry.command().trim();
                 boolean asPlayer;
 

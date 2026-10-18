@@ -1,7 +1,8 @@
 package dev.lokspel.deathswap.api;
 
 import dev.lokspel.deathswap.DeathSwap;
-import dev.lokspel.deathswap.config.MainConfig;
+import dev.lokspel.deathswap.config.DeathSwapConfig;
+import dev.lokspel.deathswap.config.settings.SettingsConfig;
 import dev.lokspel.deathswap.game.GameManager;
 import dev.lokspel.deathswap.game.MatchManager;
 import lombok.Getter;
@@ -26,8 +27,8 @@ public class DeathSwapAPI {
         return plugin.getGameManager();
     }
 
-    public MainConfig getMainConfig() {
-        return plugin.getMainConfig();
+    public SettingsConfig getSettings() {
+        return DeathSwapConfig.settings();
     }
 
     /**
@@ -68,6 +69,6 @@ public class DeathSwapAPI {
      */
     public int getSecondsUntilNextSwap(Player player) {
         MatchManager match = getMatch(player);
-        return match == null ? plugin.getMainConfig().game().swapInterval() : match.getSecondsUntilSwap();
+        return match == null ? DeathSwapConfig.settings().getGame().getSwapInterval() : match.getSecondsUntilSwap();
     }
 }

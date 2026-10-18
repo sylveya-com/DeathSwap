@@ -2,6 +2,7 @@ package dev.lokspel.deathswap.util.placeholderapi;
 
 import dev.lokspel.deathswap.DeathSwap;
 import dev.lokspel.deathswap.api.DeathSwapAPI;
+import dev.lokspel.deathswap.config.DeathSwapConfig;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -44,16 +45,16 @@ public class PlayerExpansion extends PlaceholderExpansion {
         }
 
         DeathSwapAPI api = DeathSwapAPI.getInstance();
-        var cfg = plugin.getMainConfig();
+        var game = DeathSwapConfig.settings().getGame();
 
         return switch (params) {
             case "state" -> stateOf(player, api);
             case "deaths" -> String.valueOf(api.getDeaths(player));
-            case "deaths_left" -> String.valueOf(Math.max(0, cfg.game().maxDeaths() - api.getDeaths(player)));
-            case "max_deaths" -> String.valueOf(cfg.game().maxDeaths());
+            case "deaths_left" -> String.valueOf(Math.max(0, game.getMaxDeaths() - api.getDeaths(player)));
+            case "max_deaths" -> String.valueOf(game.getMaxDeaths());
             case "players_in_lobby" -> String.valueOf(plugin.getGameManager().lobbySize());
-            case "min_players" -> String.valueOf(cfg.game().minPlayersToStart());
-            case "swap_interval" -> String.valueOf(cfg.game().swapInterval());
+            case "min_players" -> String.valueOf(game.getMinPlayersToStart());
+            case "swap_interval" -> String.valueOf(game.getSwapInterval());
             case "next_swap" -> String.valueOf(api.getSecondsUntilNextSwap(player));
             default -> null;
         };

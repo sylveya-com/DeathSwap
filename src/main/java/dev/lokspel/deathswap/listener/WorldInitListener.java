@@ -1,6 +1,7 @@
 package dev.lokspel.deathswap.listener;
 
 import dev.lokspel.deathswap.DeathSwap;
+import dev.lokspel.deathswap.config.DeathSwapConfig;
 import org.bukkit.World;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -12,16 +13,13 @@ import org.bukkit.event.world.WorldInitEvent;
  */
 public class WorldInitListener implements Listener {
 
-    private final DeathSwap plugin;
-
-    public WorldInitListener(DeathSwap plugin) {
-        this.plugin = plugin;
+    public WorldInitListener(DeathSwap ignored) {
     }
 
     @EventHandler
     public void handle(WorldInitEvent event) {
         World world = event.getWorld();
-        if (world.getName().startsWith(plugin.getMainConfig().worlds().namePrefix() + "_")) {
+        if (world.getName().startsWith(DeathSwapConfig.settings().getWorlds().getNamePrefix() + "_")) {
             world.setAutoSave(false);
         }
     }

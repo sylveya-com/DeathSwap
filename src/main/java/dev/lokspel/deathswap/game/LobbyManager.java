@@ -1,6 +1,8 @@
 package dev.lokspel.deathswap.game;
 
 import dev.lokspel.deathswap.DeathSwap;
+import dev.lokspel.deathswap.config.DeathSwapConfig;
+import dev.lokspel.deathswap.util.MessageUtil;
 import dev.lokspel.deathswap.util.PlayerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -30,14 +32,14 @@ public class LobbyManager {
 
         previousGameModes.put(player.getUniqueId(), player.getGameMode());
         player.setGameMode(GameMode.SURVIVAL);
-        player.sendMessage(plugin.getMainConfig().messages().prefixed("joined"));
+        MessageUtil.send(player, DeathSwapConfig.messages().getGame().getJoined());
 
-        if (players.size() < plugin.getMainConfig().game().minPlayersToStart()) {
+        if (players.size() < DeathSwapConfig.settings().getGame().getMinPlayersToStart()) {
             showNeedsPlayers();
         }
 
-        if (startTask != null && players.size() >= plugin.getMainConfig().game().minPlayersFastStart()) {
-            int target = plugin.getMainConfig().game().fastStartDelay();
+        if (startTask != null && players.size() >= DeathSwapConfig.settings().getGame().getMinPlayersFastStart()) {
+            int target = DeathSwapConfig.settings().getGame().getFastStartDelay();
             if (remainingCountdown > target) {
                 remainingCountdown = target;
             }
@@ -48,7 +50,7 @@ public class LobbyManager {
         if (!players.remove(uuid)) return;
         restoreGameMode(uuid);
         cancelTask();
-        if (players.size() < plugin.getMainConfig().game().minPlayersToStart()) {
+        if (players.size() < DeathSwapConfig.settings().getGame().getMinPlayersToStart()) {
             showNeedsPlayers();
         }
     }
@@ -79,12 +81,11 @@ public class LobbyManager {
     }
 
     public void tryAutoStart(Runnable onStart) {
-        var cfg = plugin.getMainConfig();
-        if (startTask != null || players.size() < cfg.game().minPlayersToStart()) return;
+        if (startTask != null || players.size() < DeathSwapConfig.settings().getGame().getMinPlayersToStart()) return;
 
-        remainingCountdown = cfg.game().startDelay();
-        if (players.size() >= cfg.game().minPlayersFastStart()) {
-            remainingCountdown = Math.min(remainingCountdown, cfg.game().fastStartDelay());
+        remainingCountdown = DeathSwapConfig.settings().getGame().getStartDelay();
+        if (players.size() >= DeathSwapConfig.settings().getGame().getMinPlayersFastStart()) {
+            remainingCountdown = Math.min(remainingCountdown, DeathSwapConfig.settings().getGame().getFastStartDelay());
         }
 
         startTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
@@ -94,13 +95,14 @@ public class LobbyManager {
                 return;
             }
 
-            if (players.size() < cfg.game().minPlayersToStart()) {
+            if (players.size() < DeathSwapConfig.settings().getGame().getMinPlayersToStart()) {
                 cancelTask();
                 return;
             }
 
-            if (cfg.display().actionbar()) {
-                var msg = cfg.messages().get("starting", "seconds", String.valueOf(remainingCountdown - 1));
+            if (DeathSwapConfig.settings().getDisplay().isActionbar()) {
+                var messages = DeathSwapConfig.messages();
+                var msg = MessageUtil.format(messages.getGame().getStarting(), "seconds", remainingCountdown - 1);
                 for (Player player : PlayerUtil.getOnlinePlayers(players)) {
                     PlayerUtil.showActionBar(player, msg);
                 }
@@ -111,12 +113,13 @@ public class LobbyManager {
     }
 
     private void showNeedsPlayers() {
-        if (!plugin.getMainConfig().display().actionbar()) return;
-        int required = plugin.getMainConfig().game().minPlayersToStart();
-        var msg = plugin.getMainConfig().messages().get(
-                "needs-players",
-                "players", String.valueOf(players.size()),
-                "required", String.valueOf(required));
+        if (!DeathSwapConfig.settings().getDisplay().isActionbar()) return;
+        int required = DeathSwapConfig.settings().getGame().getMinPlayersToStart();
+        var messages = DeathSwapConfig.messages();
+        var msg = MessageUtil.format(
+                messages.getGame().getNeedsPlayers(),
+                "current", String.valueOf(players.size()),
+                "needed", String.valueOf(required));
         for (Player player : getOnlinePlayers()) {
             PlayerUtil.showActionBar(player, msg);
         }

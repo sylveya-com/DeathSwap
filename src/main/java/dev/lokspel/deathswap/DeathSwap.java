@@ -16,7 +16,7 @@ import dev.lokspel.deathswap.command.ReloadCommand;
 import dev.lokspel.deathswap.command.SetLobbyCommand;
 import dev.lokspel.deathswap.command.StartCommand;
 import dev.lokspel.deathswap.command.StopCommand;
-import dev.lokspel.deathswap.config.MainConfig;
+import dev.lokspel.deathswap.config.DeathSwapConfig;
 import dev.lokspel.deathswap.listener.AsyncChatListener;
 import dev.lokspel.deathswap.listener.EntityDamageListener;
 import dev.lokspel.deathswap.listener.PlayerAdvancementDoneListener;
@@ -38,7 +38,6 @@ public class DeathSwap extends JavaPlugin {
 
     @Getter
     private static DeathSwap instance;
-    private MainConfig mainConfig;
     private WorldPool worldPool;
     private GameManager gameManager;
     private PlayerHider playerHider;
@@ -61,7 +60,14 @@ public class DeathSwap extends JavaPlugin {
     public void onEnable() {
         instance = this;
 
-        mainConfig = new MainConfig(this);
+        try {
+            DeathSwapConfig.load(getDataFolder().toPath());
+        } catch (Exception e) {
+            getLogger().severe("Failed to load configuration: " + DeathSwapConfig.describeFailure(e));
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
         if (SoftDependUtil.PACKET_EVENTS_ENABLED) {
             PacketEvents.getAPI().init();
             playerHider = new PlayerHider(this);
@@ -71,7 +77,7 @@ public class DeathSwap extends JavaPlugin {
         worldPool = new WorldPool(this);
         gameManager = new GameManager(this);
 
-        CommandDispatcher dispatcher = new CommandDispatcher(mainConfig, List.of(
+        CommandDispatcher dispatcher = new CommandDispatcher(List.of(
                 new RegisteredCommand("start", new StartCommand(this)),
                 new RegisteredCommand("stop", new StopCommand(this)),
                 new RegisteredCommand("join", new JoinCommand(this)),

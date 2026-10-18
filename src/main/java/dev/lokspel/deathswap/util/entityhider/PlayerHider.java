@@ -3,6 +3,7 @@ package dev.lokspel.deathswap.util.entityhider;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfoUpdate;
 import dev.lokspel.deathswap.DeathSwap;
+import dev.lokspel.deathswap.config.DeathSwapConfig;
 import dev.lokspel.deathswap.game.GameManager;
 import dev.lokspel.deathswap.game.MatchManager;
 import org.bukkit.Bukkit;
@@ -65,7 +66,7 @@ public class PlayerHider implements Listener {
                     setListed(viewer, target, true);
                 } else {
                     hidePlayer(viewer, target);
-                    if (plugin.getMainConfig().hide().matchPlayersInTab()) {
+                    if (DeathSwapConfig.settings().getHide().isMatchPlayersInTab()) {
                         setListed(viewer, target, false);
                     }
                 }

@@ -1,6 +1,7 @@
 package dev.lokspel.deathswap.listener;
 
 import dev.lokspel.deathswap.DeathSwap;
+import dev.lokspel.deathswap.config.DeathSwapConfig;
 import dev.lokspel.deathswap.game.GameManager;
 import dev.lokspel.deathswap.game.MatchManager;
 import org.bukkit.Location;
@@ -34,7 +35,7 @@ public class PlayerRespawnListener implements Listener {
         // its world is being torn down (e.g. eliminated in the final seconds).
         // Respawn them in the lobby instead of into the deleted world's void.
         if (plugin.getWorldPool().isGameWorld(event.getPlayer().getWorld())) {
-            event.setRespawnLocation(plugin.getMainConfig().backed().location("lobby"));
+            event.setRespawnLocation(DeathSwapConfig.backed().getLobby().toLocation());
         }
     }
 }

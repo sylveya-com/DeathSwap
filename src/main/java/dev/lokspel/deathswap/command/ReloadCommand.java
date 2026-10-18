@@ -1,31 +1,36 @@
 package dev.lokspel.deathswap.command;
 
 import dev.lokspel.deathswap.DeathSwap;
-import dev.lokspel.deathswap.config.MainConfig;
+import dev.lokspel.deathswap.config.DeathSwapConfig;
+import dev.lokspel.deathswap.util.MessageUtil;
 import dev.lokspel.deathswap.util.SoftDependUtil;
 import org.bukkit.command.CommandSender;
 
 public class ReloadCommand implements SubCommand {
 
     private final DeathSwap plugin;
-    private final MainConfig config;
 
     public ReloadCommand(DeathSwap plugin) {
         this.plugin = plugin;
-        this.config = plugin.getMainConfig();
     }
 
     @Override
     public boolean execute(CommandSender sender, String[] args) {
+        var messages = DeathSwapConfig.messages();
         if (!sender.hasPermission("deathswap.reload")) {
-            sender.sendMessage(config.messages().get("no-permission"));
+            MessageUtil.send(sender, messages.getCommands().getNoPermission());
             return true;
         }
-        config.load();
-        if (SoftDependUtil.PACKET_EVENTS_ENABLED && plugin.getPlayerHider() != null) {
-            plugin.getPlayerHider().refreshVisibility();
+        try {
+            DeathSwapConfig.reload();
+            if (SoftDependUtil.PACKET_EVENTS_ENABLED && plugin.getPlayerHider() != null) {
+                plugin.getPlayerHider().refreshVisibility();
+            }
+            MessageUtil.send(sender, DeathSwapConfig.messages().getCommands().getConfigReloaded());
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to reload configuration: " + DeathSwapConfig.describeFailure(e));
+            sender.sendMessage("§cFailed to reload configuration: " + e.getMessage());
         }
-        sender.sendMessage(config.messages().prefixed("config-reloaded"));
         return true;
     }
 }

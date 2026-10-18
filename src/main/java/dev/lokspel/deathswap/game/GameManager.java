@@ -1,6 +1,8 @@
 package dev.lokspel.deathswap.game;
 
 import dev.lokspel.deathswap.DeathSwap;
+import dev.lokspel.deathswap.config.DeathSwapConfig;
+import dev.lokspel.deathswap.util.MessageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -27,16 +29,17 @@ public class GameManager {
     public void join(Player player) {
         UUID uuid = player.getUniqueId();
 
+        var messages = DeathSwapConfig.messages();
         if (findMatchByPlayer(uuid) != null) {
-            player.sendMessage(plugin.getMainConfig().messages().prefixed("already-joined"));
+            MessageUtil.send(player, messages.getGame().getAlreadyJoined());
             return;
         }
         if (lobby.contains(uuid)) {
-            player.sendMessage(plugin.getMainConfig().messages().prefixed("already-queue"));
+            MessageUtil.send(player, messages.getGame().getAlreadyQueue());
             return;
         }
-        if (!plugin.getMainConfig().backed().isSet("lobby")) {
-            player.sendMessage(plugin.getMainConfig().messages().prefixed("lobby-not-set"));
+        if (!DeathSwapConfig.backed().getLobby().isSet()) {
+            MessageUtil.send(player, messages.getCommands().getLobbyNotSet());
             return;
         }
 
@@ -60,7 +63,7 @@ public class GameManager {
             return;
         }
 
-        player.sendMessage(plugin.getMainConfig().messages().prefixed("left"));
+        MessageUtil.send(player, DeathSwapConfig.messages().getGame().getLeft());
     }
 
     public void onPlayerDeath(Player player) {
@@ -72,7 +75,7 @@ public class GameManager {
 
     public boolean forceStart() {
         if (lobby.size() < 2) return false;
-        if (!plugin.getMainConfig().backed().isSet("lobby")) return false;
+        if (!DeathSwapConfig.backed().getLobby().isSet()) return false;
 
         lobby.cancelTask();
         createMatch();
@@ -89,14 +92,12 @@ public class GameManager {
         World world = plugin.getWorldPool().createGameWorld();
         if (world == null) {
             if (!busyNotified) {
-                var messages = plugin.getMainConfig().messages();
-                var msg = plugin.getWorldPool().isGenerating()
-                        ? messages.prefixed("world-preparing")
-                        : messages.prefixed("worlds-busy");
+                var messages = DeathSwapConfig.messages();
+                String msg = plugin.getWorldPool().isGenerating()
+                        ? messages.getGame().getWorldPreparing()
+                        : messages.getGame().getWorldsBusy();
 
-                for (Player player : players) {
-                    player.sendMessage(msg);
-                }
+                MessageUtil.broadcast(players, msg);
                 busyNotified = true;
             }
             Bukkit.getScheduler().runTaskLater(plugin, this::createMatch, 20L);

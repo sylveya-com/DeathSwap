@@ -1,6 +1,7 @@
 package dev.lokspel.deathswap.world;
 
 import dev.lokspel.deathswap.DeathSwap;
+import dev.lokspel.deathswap.config.DeathSwapConfig;
 import dev.lokspel.deathswap.util.ReflectionUtil;
 import lombok.Getter;
 import org.bukkit.Bukkit;
@@ -48,15 +49,15 @@ public class WorldPool {
         this.plugin = plugin;
         this.reset = new WorldReset(plugin);
         this.loader = new WorldLoader();
-        this.namePrefix = plugin.getMainConfig().worlds().namePrefix();
-        this.generateDimensions = plugin.getMainConfig().worlds().generateDimensions();
-        this.generateOnStart = plugin.getMainConfig().worlds().generateOnStart();
+        this.namePrefix = DeathSwapConfig.settings().getWorlds().getNamePrefix();
+        this.generateDimensions = DeathSwapConfig.settings().getWorlds().isGenerateDimensions();
+        this.generateOnStart = DeathSwapConfig.settings().getWorlds().isGenerateOnStart();
 
         if (generateOnStart) {
             return;
         }
 
-        int count = Math.max(1, plugin.getMainConfig().worlds().count());
+        int count = Math.max(1, DeathSwapConfig.settings().getWorlds().getCount());
 
         for (int i = 0; i < count; i++) {
             instances.add(newInstance(i));
@@ -189,7 +190,7 @@ public class WorldPool {
      * lobby before the worlds are unloaded.
      */
     private void evacuate(WorldInstance instance) {
-        Location lobby = plugin.getMainConfig().backed().location("lobby");
+        Location lobby = DeathSwapConfig.backed().getLobby().toLocation();
 
         for (World world : instance.allWorlds()) {
             if (world == null) {
@@ -286,7 +287,7 @@ public class WorldPool {
      * Applies the configured world border size to every world of the instance.
      */
     private void applyBorder(WorldInstance instance) {
-        int size = plugin.getMainConfig().worlds().border();
+        int size = DeathSwapConfig.settings().getWorlds().getBorder();
 
         for (World world : instance.allWorlds()) {
             if (world == null) {
@@ -321,7 +322,7 @@ public class WorldPool {
     private void applySpawnRule(WorldInstance instance) {
         int radius = Math.max(
                 0,
-                plugin.getMainConfig().worlds().spawnRadius()
+                DeathSwapConfig.settings().getWorlds().getSpawnRadius()
         );
 
         if (RESPAWN_RADIUS_RULE == null) {
@@ -384,9 +385,7 @@ public class WorldPool {
     ) {
         World world = instance.getWorld();
 
-        int radius = plugin.getMainConfig()
-                .worlds()
-                .preGenerateRadius();
+        int radius = DeathSwapConfig.settings().getWorlds().getPreGenerateRadius();
 
         Location spawn = world.getSpawnLocation();
 

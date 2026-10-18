@@ -2,6 +2,8 @@ package dev.lokspel.deathswap.game;
 
 import dev.lokspel.deathswap.DeathSwap;
 import dev.lokspel.deathswap.api.event.PlayerSwapEvent;
+import dev.lokspel.deathswap.config.DeathSwapConfig;
+import dev.lokspel.deathswap.util.MessageUtil;
 import dev.lokspel.deathswap.util.PlayerUtil;
 import dev.lokspel.deathswap.util.SoundUtil;
 import org.bukkit.Bukkit;
@@ -24,12 +26,11 @@ public class SwapManager {
     }
 
     public void scheduleNext(Runnable onSwapComplete, Supplier<Set<Player>> aliveSupplier) {
-        var cfg = plugin.getMainConfig();
-        countdownSeconds = Math.max(1, cfg.game().countdownSeconds());
-        totalRemaining = Math.max(countdownSeconds + 1, cfg.game().swapInterval());
-        var messages = cfg.messages();
-        var tickSound = SoundUtil.minecraft(cfg.sounds().countdownTick());
-        boolean showHud = cfg.display().actionbar();
+        countdownSeconds = Math.max(1, DeathSwapConfig.settings().getGame().getCountdownSeconds());
+        totalRemaining = Math.max(countdownSeconds + 1, DeathSwapConfig.settings().getGame().getSwapInterval());
+        var messages = DeathSwapConfig.messages();
+        var tickSound = SoundUtil.minecraft(DeathSwapConfig.settings().getSounds().getCountdownTick());
+        boolean showHud = DeathSwapConfig.settings().getDisplay().isActionbar();
 
         swapTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             totalRemaining--;
@@ -42,7 +43,7 @@ public class SwapManager {
             }
 
             if (totalRemaining <= countdownSeconds) {
-                var msg = messages.get("countdown", "seconds", String.valueOf(totalRemaining));
+                var msg = MessageUtil.format(messages.getGame().getCountdown(), "seconds", totalRemaining);
                 var alive = aliveSupplier.get();
 
                 for (Player player : alive) {
@@ -64,7 +65,7 @@ public class SwapManager {
      */
     public int secondsUntilSwap() {
         if (swapTask == null) {
-            return plugin.getMainConfig().game().swapInterval();
+            return DeathSwapConfig.settings().getGame().getSwapInterval();
         }
         return Math.max(1, totalRemaining);
     }
@@ -72,10 +73,9 @@ public class SwapManager {
     public void executeSwap(Set<Player> alivePlayers) {
         if (alivePlayers.size() < 2) return;
 
-        var cfg = plugin.getMainConfig();
-        var messages = cfg.messages();
-        var goSound = SoundUtil.minecraft(cfg.sounds().countdownGo());
-        var swapSound = SoundUtil.minecraft(cfg.sounds().swap());
+        var messages = DeathSwapConfig.messages();
+        var goSound = SoundUtil.minecraft(DeathSwapConfig.settings().getSounds().getCountdownGo());
+        var swapSound = SoundUtil.minecraft(DeathSwapConfig.settings().getSounds().getSwap());
 
         var playerList = new ArrayList<>(alivePlayers);
         var first = playerList.get(0);
@@ -101,7 +101,7 @@ public class SwapManager {
             if (swapSound != null) {
                 player.playSound(player.getLocation(), swapSound, 1.0f, 1.0f);
             }
-            player.sendMessage(messages.prefixed("swap-message"));
+            MessageUtil.send(player, messages.getGame().getSwapped());
         }
     }
 

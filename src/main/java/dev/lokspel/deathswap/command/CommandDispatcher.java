@@ -1,6 +1,7 @@
 package dev.lokspel.deathswap.command;
 
-import dev.lokspel.deathswap.config.MainConfig;
+import dev.lokspel.deathswap.config.DeathSwapConfig;
+import dev.lokspel.deathswap.util.MessageUtil;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -15,10 +16,8 @@ import java.util.stream.Collectors;
 public class CommandDispatcher implements CommandExecutor, TabCompleter {
 
     private final Map<String, SubCommand> subCommands = new LinkedHashMap<>();
-    private final MainConfig config;
 
-    public CommandDispatcher(MainConfig config, List<RegisteredCommand> commands) {
-        this.config = config;
+    public CommandDispatcher(List<RegisteredCommand> commands) {
         for (RegisteredCommand cmd : commands) {
             subCommands.put(cmd.name(), cmd.executor());
         }
@@ -27,7 +26,7 @@ public class CommandDispatcher implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(@NonNull CommandSender sender, @NonNull Command command, @NonNull String label, String[] args) {
         if (args.length == 0) {
-            sender.sendMessage(config.messages().prefixed("usage"));
+            MessageUtil.send(sender, DeathSwapConfig.messages().getCommands().getUsage());
             return true;
         }
 
@@ -36,7 +35,7 @@ public class CommandDispatcher implements CommandExecutor, TabCompleter {
             return sub.execute(sender, args);
         }
 
-        sender.sendMessage(config.messages().prefixed("usage"));
+        MessageUtil.send(sender, DeathSwapConfig.messages().getCommands().getUsage());
         return true;
     }
 

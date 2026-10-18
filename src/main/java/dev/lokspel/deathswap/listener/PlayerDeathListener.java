@@ -1,6 +1,7 @@
 package dev.lokspel.deathswap.listener;
 
 import dev.lokspel.deathswap.DeathSwap;
+import dev.lokspel.deathswap.config.DeathSwapConfig;
 import dev.lokspel.deathswap.game.GameManager;
 import dev.lokspel.deathswap.game.MatchManager;
 import org.bukkit.entity.Player;
@@ -14,11 +15,9 @@ import java.util.List;
 
 public class PlayerDeathListener implements Listener {
 
-    private final DeathSwap plugin;
     private final GameManager game;
 
     public PlayerDeathListener(DeathSwap plugin) {
-        this.plugin = plugin;
         this.game = plugin.getGameManager();
     }
 
@@ -27,7 +26,7 @@ public class PlayerDeathListener implements Listener {
         Player player = event.getEntity();
         game.onPlayerDeath(player);
 
-        if (!plugin.getMainConfig().hide().isolateDeaths()) {
+        if (!DeathSwapConfig.settings().getHide().isIsolateDeaths()) {
             return;
         }
 

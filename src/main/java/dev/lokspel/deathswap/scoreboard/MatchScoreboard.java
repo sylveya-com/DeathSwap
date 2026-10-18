@@ -1,6 +1,8 @@
 package dev.lokspel.deathswap.scoreboard;
 
 import dev.lokspel.deathswap.DeathSwap;
+import dev.lokspel.deathswap.config.DeathSwapConfig;
+import dev.lokspel.deathswap.util.MessageUtil;
 import dev.lokspel.deathswap.util.PlayerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -20,13 +22,11 @@ import java.util.UUID;
 
 public class MatchScoreboard {
 
-    private final DeathSwap plugin;
     private final Set<String> scoreboardKeys = new HashSet<>();
     private Scoreboard scoreboard;
     private Objective deathsObjective;
 
-    public MatchScoreboard(DeathSwap plugin) {
-        this.plugin = plugin;
+    public MatchScoreboard() {
     }
 
     public void init(String title) {
@@ -56,7 +56,8 @@ public class MatchScoreboard {
             Player player = PlayerUtil.getOnlinePlayer(entry.getKey());
             if (player == null) continue;
 
-            String entryName = plugin.getMainConfig().messages().get("scoreboard-entry", "player", player.getName());
+            var messages = DeathSwapConfig.messages();
+            String entryName = MessageUtil.format(messages.getScoreboard().getEntry(), "player", player.getName());
             if (entryName.length() > 40) {
                 entryName = entryName.substring(0, 40);
             }

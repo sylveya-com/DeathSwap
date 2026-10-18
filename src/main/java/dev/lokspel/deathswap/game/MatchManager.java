@@ -3,11 +3,11 @@ package dev.lokspel.deathswap.game;
 import dev.lokspel.deathswap.DeathSwap;
 import dev.lokspel.deathswap.api.event.MatchStartEvent;
 import dev.lokspel.deathswap.api.event.MatchEndEvent;
-import dev.lokspel.deathswap.config.MainConfig;
-import dev.lokspel.deathswap.config.MessagesConfig;
+import dev.lokspel.deathswap.config.DeathSwapConfig;
 import dev.lokspel.deathswap.scoreboard.MatchScoreboard;
 import dev.lokspel.deathswap.game.player.PlayerState;
 import dev.lokspel.deathswap.util.CommandUtil;
+import dev.lokspel.deathswap.util.MessageUtil;
 import dev.lokspel.deathswap.util.PlayerUtil;
 import dev.lokspel.deathswap.util.SoundUtil;
 import lombok.Getter;
@@ -32,8 +32,6 @@ import java.util.concurrent.ThreadLocalRandom;
 public class MatchManager {
 
     private final DeathSwap plugin;
-    private final MainConfig cfg;
-    private final MessagesConfig messages;
     @Getter
     private final World gameWorld;
     private final Set<UUID> playerUuids;
@@ -48,15 +46,13 @@ public class MatchManager {
 
     public MatchManager(DeathSwap plugin, List<Player> players, World gameWorld, Runnable onEnd) {
         this.plugin = plugin;
-        this.cfg = plugin.getMainConfig();
-        this.messages = cfg.messages();
         this.onEnd = onEnd;
         this.playerUuids = new HashSet<>();
         this.spectators = new HashSet<>();
         this.states = new HashMap<>();
         this.deaths = new DeathManager();
         this.swap = new SwapManager(plugin);
-        this.scoreboard = new MatchScoreboard(plugin);
+        this.scoreboard = new MatchScoreboard();
         this.cleanedUp = false;
 
         for (Player player : players) {
@@ -72,15 +68,16 @@ public class MatchManager {
         }
 
         deaths.init(playerUuids);
-        if (cfg.display().scoreboard()) {
-            scoreboard.init(messages.get("scoreboard-title"));
+        var messages = DeathSwapConfig.messages();
+        if (DeathSwapConfig.settings().getDisplay().isScoreboard()) {
+            scoreboard.init(MessageUtil.format(messages.getScoreboard().getTitle()));
             refreshScoreboard();
         }
 
         scheduleNextSwap();
-        broadcast(messages.prefixed("game-started"));
+        broadcast(MessageUtil.format(messages.getGame().getStarted()));
 
-        int maxTime = cfg.game().maxMatchTime();
+        int maxTime = DeathSwapConfig.settings().getGame().getMaxMatchTime();
         if (maxTime > 0) {
             timeoutTask = Bukkit.getScheduler().runTaskLater(plugin, this::onTimeUp, maxTime * 1200L);
         }
@@ -100,7 +97,7 @@ public class MatchManager {
         boolean eliminated = spectators.contains(player.getUniqueId());
         if (eliminated) {
             player.setGameMode(GameMode.SPECTATOR);
-            CommandUtil.run(cfg.commands().onMatchEnd(), player);
+            CommandUtil.run(DeathSwapConfig.settings().getCommands().getOnMatchEnd(), player);
         }
 
         Location location = randomSpawn();
@@ -109,7 +106,7 @@ public class MatchManager {
         if (eliminated) {
             checkWinner();
             if (cleanedUp) {
-                Location lobby = cfg.backed().location("lobby");
+                Location lobby = DeathSwapConfig.backed().getLobby().toLocation();
                 if (lobby != null) {
                     return lobby;
                 }
@@ -125,7 +122,7 @@ public class MatchManager {
      */
     private Location randomSpawn() {
         Location spawn = gameWorld.getSpawnLocation();
-        int r = Math.max(0, cfg.worlds().spawnRadius());
+        int r = Math.max(0, DeathSwapConfig.settings().getWorlds().getSpawnRadius());
         if (r == 0) return spawn.clone();
 
         ThreadLocalRandom random = ThreadLocalRandom.current();
@@ -139,15 +136,16 @@ public class MatchManager {
         if (!playerUuids.contains(player.getUniqueId())) return;
 
         int deathCount = deaths.add(player.getUniqueId());
-        int max = cfg.game().maxDeaths();
+        int max = DeathSwapConfig.settings().getGame().getMaxDeaths();
 
+        var messages = DeathSwapConfig.messages();
         if (deathCount >= max) {
             spectators.add(player.getUniqueId());
-            player.sendMessage(messages.prefixed("eliminated"));
-            broadcast(messages.prefixed("player-eliminated", "player", player.getName()));
+            MessageUtil.send(player, messages.getGame().getEliminated());
+            broadcast(MessageUtil.format(messages.getGame().getPlayerEliminated(), "player", player.getName()));
             checkWinner();
         } else {
-            player.sendMessage(messages.prefixed("deaths-left", "deaths", String.valueOf(max - deathCount)));
+            MessageUtil.send(player, messages.getGame().getDeathsLeft(), "deaths", max - deathCount);
         }
 
         refreshScoreboard();
@@ -166,14 +164,14 @@ public class MatchManager {
         }
 
         if (teleport) {
-            Location lobby = cfg.backed().location("lobby");
+            Location lobby = DeathSwapConfig.backed().getLobby().toLocation();
             if (lobby != null) {
                 player.teleport(lobby);
             }
         }
 
         if (!eliminated) {
-            CommandUtil.run(cfg.commands().onMatchEnd(), player);
+            CommandUtil.run(DeathSwapConfig.settings().getCommands().getOnMatchEnd(), player);
         }
 
         refreshScoreboard();
@@ -220,7 +218,7 @@ public class MatchManager {
     }
 
     private void refreshScoreboard() {
-        if (!cfg.display().scoreboard()) return;
+        if (!DeathSwapConfig.settings().getDisplay().isScoreboard()) return;
         scoreboard.update(deaths.getAll());
         scoreboard.apply(deaths.getAll().keySet());
     }
@@ -249,10 +247,11 @@ public class MatchManager {
         cancelTasks();
 
         Player winner = null;
+        var messages = DeathSwapConfig.messages();
         if (alive.size() == 1) {
             winner = alive.iterator().next();
-            broadcast(messages.prefixed("winner", "player", winner.getName()));
-            broadcastSound(cfg.sounds().win());
+            broadcast(MessageUtil.format(messages.getGame().getWinner(), "player", winner.getName()));
+            broadcastSound(DeathSwapConfig.settings().getSounds().getWin());
             winner.setGameMode(GameMode.SURVIVAL);
         }
 
@@ -270,13 +269,14 @@ public class MatchManager {
         List<Player> alive = new ArrayList<>(deaths.getAlivePlayers());
         Set<Player> leaders = lowestDeathPlayers(alive);
 
+        var messages = DeathSwapConfig.messages();
         Player winner = leaders.size() == 1 ? leaders.iterator().next() : null;
         if (winner != null) {
-            broadcast(messages.prefixed("winner", "player", winner.getName()));
-            broadcastSound(cfg.sounds().win());
+            broadcast(MessageUtil.format(messages.getGame().getWinner(), "player", winner.getName()));
+            broadcastSound(DeathSwapConfig.settings().getSounds().getWin());
             winner.setGameMode(GameMode.SURVIVAL);
         } else {
-            broadcast(messages.prefixed("time-up"));
+            broadcast(MessageUtil.format(messages.getGame().getTimeUp()));
         }
 
         cleanupNow(winner);
@@ -308,7 +308,7 @@ public class MatchManager {
         cleanedUp = true;
 
         scoreboard.remove(playerUuids);
-        Location lobby = cfg.backed().location("lobby");
+        Location lobby = DeathSwapConfig.backed().getLobby().toLocation();
         for (Player player : getOnlinePlayers()) {
             PlayerState state = states.remove(player.getUniqueId());
             if (state != null) {
@@ -318,7 +318,7 @@ public class MatchManager {
                 player.teleport(lobby);
             }
             if (!spectators.contains(player.getUniqueId())) {
-                CommandUtil.run(cfg.commands().onMatchEnd(), player);
+                CommandUtil.run(DeathSwapConfig.settings().getCommands().getOnMatchEnd(), player);
             }
         }
 

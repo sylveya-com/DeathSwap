@@ -1,6 +1,7 @@
 package dev.lokspel.deathswap.listener;
 
 import dev.lokspel.deathswap.DeathSwap;
+import dev.lokspel.deathswap.config.DeathSwapConfig;
 import dev.lokspel.deathswap.game.GameManager;
 import dev.lokspel.deathswap.game.MatchManager;
 import org.bukkit.entity.Player;
@@ -12,16 +13,14 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 public class AsyncChatListener implements Listener {
 
     private final GameManager game;
-    private final DeathSwap plugin;
 
     public AsyncChatListener(DeathSwap plugin) {
-        this.plugin = plugin;
         this.game = plugin.getGameManager();
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void handle(AsyncPlayerChatEvent event) {
-        if (!plugin.getMainConfig().hide().isolateChat()) {
+        if (!DeathSwapConfig.settings().getHide().isIsolateChat()) {
             return;
         }
 
