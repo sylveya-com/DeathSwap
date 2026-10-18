@@ -60,13 +60,7 @@ public class DeathSwap extends JavaPlugin {
     public void onEnable() {
         instance = this;
 
-        try {
-            DeathSwapConfig.load(getDataFolder().toPath());
-        } catch (Exception e) {
-            getLogger().severe("Failed to load configuration: " + DeathSwapConfig.describeFailure(e));
-            getServer().getPluginManager().disablePlugin(this);
-            return;
-        }
+        DeathSwapConfig.load(getDataFolder().toPath());
 
         if (SoftDependUtil.PACKET_EVENTS_ENABLED) {
             PacketEvents.getAPI().init();
