@@ -7,7 +7,7 @@ shadow = "9.0.0"
 lombok = "1.18.42"
 
 # platform api
-spigot = "26.2-R0.1-SNAPSHOT"
+spigot = "26.3-R0.1-SNAPSHOT"
 
 # dependencies
 packetevents = "2.14.0"
