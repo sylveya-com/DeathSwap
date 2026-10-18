@@ -49,6 +49,7 @@ tasks.shadowJar {
     relocate("me.whereareiam.strata", "dev.lokspel.deathswap.thirdparty.strata")
     relocate("com.fasterxml.jackson", "dev.lokspel.deathswap.thirdparty.jackson")
     relocate("org.yaml.snakeyaml", "dev.lokspel.deathswap.thirdparty.snakeyaml")
+    relocate("dev.faststats", "dev.lokspel.deathswap.thirdparty.faststats")
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     filesMatching("META-INF/services/**") {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
