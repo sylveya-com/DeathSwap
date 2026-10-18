@@ -10,7 +10,18 @@ import me.whereareiam.configura.feature.comment.api.annotation.Comment;
 @Getter
 @Setter
 public class CommandsSettings {
-  @Comment("Commands run when a player returns to the lobby after match end.")
+  @Comment({
+      "Commands run after a player leaves a match and returns to the lobby.",
+      "Prefix with [player] to run as player or [console] for console (default).",
+      "Placeholders: %player%, %uuid%.",
+      "",
+      "Example:",
+      "  on-match-end:",
+      "    - command: \"[player] spawn\"",
+      "      bypass-permissions:",
+      "        - \"essentials.spawn\"",
+      "    - command: \"[console] say Match ended for %player%\""
+  })
   @JsonProperty("on-match-end")
   private List<CommandEntry> onMatchEnd = new ArrayList<>();
 }
