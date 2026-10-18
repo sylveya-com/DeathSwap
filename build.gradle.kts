@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("com.gradleup.shadow") version "9.0.0"
+    alias(libs.plugins.shadow)
 }
 
 group = "dev.lokspel.deathswap"
@@ -16,27 +16,21 @@ repositories {
 }
 
 dependencies {
-    compileOnly("org.spigotmc:spigot-api:26.2-R0.1-SNAPSHOT")
-    compileOnly("me.clip:placeholderapi:2.12.3")
-    compileOnly("com.github.retrooper:packetevents-spigot:2.14.0")
+    compileOnly(libs.spigot.api)
+    compileOnly(libs.placeholderapi)
+    compileOnly(libs.packetevents.spigot)
 
-    implementation("dev.faststats.metrics:bukkit:0.30.2")
+    implementation(libs.faststats.bukkit)
+    implementation(libs.bundles.adventure)
+    implementation(libs.bundles.configura)
+    implementation(libs.bundles.strata)
 
-    implementation("net.kyori:adventure-api:5.2.0")
-    implementation("net.kyori:adventure-text-serializer-legacy:5.2.0")
-    implementation("net.kyori:adventure-text-minimessage:5.2.0")
+    compileOnly(libs.lombok)
+    annotationProcessor(libs.lombok)
 
-    implementation("me.whereareiam:configura:2.1.0")
-    implementation("me.whereareiam.configura.feature:comment:2.1.0")
-    implementation("me.whereareiam:strata:2.0.0")
-    implementation("me.whereareiam:strata-adapter-configura:2.0.0")
-
-    compileOnly("org.projectlombok:lombok:1.18.42")
-    annotationProcessor("org.projectlombok:lombok:1.18.42")
-
-    testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.11.4")
-    testImplementation("org.spigotmc:spigot-api:26.2-R0.1-SNAPSHOT")
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.platform.launcher)
+    testImplementation(libs.spigot.api)
 }
 
 tasks.test {
