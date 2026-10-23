@@ -49,8 +49,8 @@ public class LobbyManager {
     public void leave(UUID uuid) {
         if (!players.remove(uuid)) return;
         restoreGameMode(uuid);
-        cancelTask();
         if (players.size() < DeathSwapConfig.settings().getGame().getMinPlayersToStart()) {
+            cancelTask();
             showNeedsPlayers();
         }
     }
