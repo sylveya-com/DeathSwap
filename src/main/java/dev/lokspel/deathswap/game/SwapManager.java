@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -78,15 +79,16 @@ public class SwapManager {
         var swapSound = SoundUtil.minecraft(DeathSwapConfig.settings().getSounds().getSwap());
 
         var playerList = new ArrayList<>(alivePlayers);
-        var first = playerList.get(0);
-        var second = playerList.get(1);
 
-        var event = new PlayerSwapEvent(first, second);
+        var event = new PlayerSwapEvent(playerList);
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled()) return;
 
-        var loc1 = first.getLocation();
-        var loc2 = second.getLocation();
+        var locations = new ArrayList<org.bukkit.Location>(playerList.size());
+        for (Player player : playerList) {
+            locations.add(player.getLocation());
+        }
+        Collections.shuffle(locations);
 
         for (Player player : playerList) {
             if (goSound != null) {
@@ -94,8 +96,9 @@ public class SwapManager {
             }
         }
 
-        first.teleport(loc2);
-        second.teleport(loc1);
+        for (int i = 0; i < playerList.size(); i++) {
+            playerList.get(i).teleport(locations.get(i));
+        }
 
         for (Player player : playerList) {
             if (swapSound != null) {
