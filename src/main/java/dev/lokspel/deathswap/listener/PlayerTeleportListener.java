@@ -17,9 +17,11 @@ import java.util.UUID;
  */
 public final class PlayerTeleportListener implements Listener {
 
+    private final DeathSwap plugin;
     private final GameManager game;
 
     public PlayerTeleportListener(DeathSwap plugin) {
+        this.plugin = plugin;
         this.game = plugin.getGameManager();
     }
 
@@ -38,7 +40,9 @@ public final class PlayerTeleportListener implements Listener {
             return;
         }
 
-        if (to.getWorld().equals(match.getGameWorld())) {
+        // Allow teleports to any world owned by the game world pool
+        // (overworld, nether, and end dimensions of the same match).
+        if (plugin.getWorldPool().isGameWorld(to.getWorld())) {
             return;
         }
 
