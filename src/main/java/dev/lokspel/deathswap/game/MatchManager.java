@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class MatchManager {
@@ -47,8 +48,8 @@ public class MatchManager {
     public MatchManager(DeathSwap plugin, List<Player> players, World gameWorld, Runnable onEnd) {
         this.plugin = plugin;
         this.onEnd = onEnd;
-        this.playerUuids = new HashSet<>();
-        this.spectators = new HashSet<>();
+        this.playerUuids = ConcurrentHashMap.newKeySet();
+        this.spectators = ConcurrentHashMap.newKeySet();
         this.states = new HashMap<>();
         this.deaths = new DeathManager();
         this.swap = new SwapManager(plugin);

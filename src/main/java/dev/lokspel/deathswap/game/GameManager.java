@@ -8,7 +8,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -18,7 +18,7 @@ public class GameManager {
 
     private final DeathSwap plugin;
     private final LobbyManager lobby;
-    private final Map<UUID, MatchManager> matches = new HashMap<>();
+    private final Map<UUID, MatchManager> matches = new ConcurrentHashMap<>();
     private boolean busyNotified;
 
     public GameManager(DeathSwap plugin) {

@@ -28,13 +28,12 @@ public class AsyncChatListener implements Listener {
         MatchManager match = game.findMatchByPlayer(sender.getUniqueId());
 
         if (match != null) {
-            event.getRecipients().retainAll(match.getOnlinePlayers());
+            event.getRecipients().removeIf(recipient -> !match.contains(recipient.getUniqueId()));
             return;
         }
 
-        event.getRecipients().removeIf(viewer ->
-                viewer instanceof Player player &&
-                        game.findMatchByPlayer(player.getUniqueId()) != null
+        event.getRecipients().removeIf(recipient ->
+                game.findMatchByPlayer(recipient.getUniqueId()) != null
         );
     }
 }
