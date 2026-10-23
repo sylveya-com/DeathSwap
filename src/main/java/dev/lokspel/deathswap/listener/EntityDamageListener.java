@@ -3,7 +3,9 @@ package dev.lokspel.deathswap.listener;
 import dev.lokspel.deathswap.DeathSwap;
 import dev.lokspel.deathswap.config.DeathSwapConfig;
 import dev.lokspel.deathswap.game.GameManager;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -20,7 +22,13 @@ public class EntityDamageListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void handle(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof Player damaged)) return;
-        if (!(event.getDamager() instanceof Player damager)) return;
+
+        Entity damagerEntity = event.getDamager();
+        if (damagerEntity instanceof Projectile projectile && projectile.getShooter() instanceof Entity shooter) {
+            damagerEntity = shooter;
+        }
+
+        if (!(damagerEntity instanceof Player damager)) return;
 
         if (game.findMatchByPlayer(damaged.getUniqueId()) == null) return;
         if (game.findMatchByPlayer(damager.getUniqueId()) == null) return;
