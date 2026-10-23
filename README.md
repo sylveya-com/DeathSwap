@@ -85,7 +85,7 @@ The expansion is available under both `deathswap` and `ds`.
 ## » Requirements
 
 * **Java 25**
-* **Spigot, Paper, or Folia**
+* **Spigot or Paper**
 * **Minecraft `1.21.11`, `26.1`, or `26.2`**
 * Optional: [PacketEvents](https://github.com/retrooper/packetevents) for match player tab-list hiding
 * Optional: [PlaceholderAPI](https://placeholderapi.com) for placeholders
