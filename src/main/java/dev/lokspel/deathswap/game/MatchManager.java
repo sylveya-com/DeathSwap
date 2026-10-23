@@ -62,7 +62,7 @@ public class MatchManager {
         this.gameWorld = gameWorld;
 
         for (Player player : players) {
-            player.teleport(gameWorld.getSpawnLocation());
+            player.teleport(randomSpawn());
             states.put(player.getUniqueId(), PlayerState.capture(player));
             PlayerState.resetForMatch(player);
         }
