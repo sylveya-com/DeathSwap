@@ -7,6 +7,7 @@ import dev.lokspel.deathswap.util.MessageUtil;
 import dev.lokspel.deathswap.util.PlayerUtil;
 import dev.lokspel.deathswap.util.SoundUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -84,7 +85,7 @@ public class SwapManager {
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled()) return;
 
-        var locations = new ArrayList<org.bukkit.Location>(playerList.size());
+        var locations = new ArrayList<Location>(playerList.size());
         for (Player player : playerList) {
             locations.add(player.getLocation());
         }
