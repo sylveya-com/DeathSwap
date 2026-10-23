@@ -158,6 +158,11 @@ public class MatchManager {
         playerUuids.remove(player.getUniqueId());
         deaths.remove(player.getUniqueId());
 
+        PlayerState state = states.remove(player.getUniqueId());
+        if (state != null) {
+            state.restore(player);
+        }
+
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         if (manager != null) {
             player.setScoreboard(manager.getMainScoreboard());
