@@ -32,9 +32,6 @@ public class WorldPool {
     private final DeathSwap plugin;
     private final WorldReset reset;
     private final WorldLoader loader;
-    private final String namePrefix;
-    private final boolean generateDimensions;
-    private final boolean generateOnStart;
     private final List<WorldInstance> instances = new ArrayList<>();
     private int generatedCount;
 
@@ -49,16 +46,12 @@ public class WorldPool {
         this.plugin = plugin;
         this.reset = new WorldReset(plugin);
         this.loader = new WorldLoader();
-        this.namePrefix = DeathSwapConfig.settings().getWorlds().getNamePrefix();
-        this.generateDimensions = DeathSwapConfig.settings().getWorlds().isGenerateDimensions();
-        this.generateOnStart = DeathSwapConfig.settings().getWorlds().isGenerateOnStart();
 
-        if (generateOnStart) {
+        if (DeathSwapConfig.settings().getWorlds().isGenerateOnStart()) {
             return;
         }
 
         int count = Math.max(1, DeathSwapConfig.settings().getWorlds().getCount());
-
         for (int i = 0; i < count; i++) {
             instances.add(newInstance(i));
         }
@@ -66,11 +59,28 @@ public class WorldPool {
         warmUp();
     }
 
+    /**
+     * Updates pooled worlds when configuration is reloaded.
+     */
+    public void reload() {
+        if (DeathSwapConfig.settings().getWorlds().isGenerateOnStart()) {
+            return;
+        }
+
+        int target = Math.max(1, DeathSwapConfig.settings().getWorlds().getCount());
+        while (instances.size() < target) {
+            WorldInstance instance = newInstance(instances.size());
+            instances.add(instance);
+            loadInstance(instance);
+        }
+    }
+
     private WorldInstance newInstance(int index) {
+        var worlds = DeathSwapConfig.settings().getWorlds();
         return new WorldInstance(
-                namePrefix + "_" + index,
+                worlds.getNamePrefix() + "_" + index,
                 loader,
-                generateDimensions
+                worlds.isGenerateDimensions()
         );
     }
 
@@ -85,12 +95,11 @@ public class WorldPool {
      * @return the acquired world, or {@code null} if none is available yet
      */
     public World createGameWorld() {
-        if (generateOnStart) {
+        if (DeathSwapConfig.settings().getWorlds().isGenerateOnStart()) {
             return createFreshWorld();
         }
 
         WorldInstance instance = findReadyInstance();
-
         if (instance == null) {
             return null;
         }
@@ -105,7 +114,6 @@ public class WorldPool {
      */
     private World createFreshWorld() {
         WorldInstance ready = findReadyInstance();
-
         if (ready != null) {
             ready.acquire();
             return ready.getWorld();
@@ -150,7 +158,6 @@ public class WorldPool {
 
             Bukkit.getScheduler().runTask(plugin, () -> {
                 evacuate(instance);
-
                 Bukkit.getScheduler().runTaskLater(plugin, () -> tearDown(instance), 1L);
             });
 
@@ -163,7 +170,7 @@ public class WorldPool {
      * recycling it back into the pool or deleting it outright.
      */
     private void tearDown(WorldInstance instance) {
-        if (generateOnStart) {
+        if (DeathSwapConfig.settings().getWorlds().isGenerateOnStart()) {
             reset.discard(instance);
             instances.remove(instance);
             return;
@@ -177,7 +184,7 @@ public class WorldPool {
      * already shutting down.
      */
     private void tearDownNow(WorldInstance instance) {
-        if (generateOnStart) {
+        if (DeathSwapConfig.settings().getWorlds().isGenerateOnStart()) {
             reset.discardNow(instance);
             return;
         }
@@ -198,7 +205,9 @@ public class WorldPool {
             }
 
             for (Player player : world.getPlayers()) {
-                player.teleport(lobby);
+                if (lobby != null) {
+                    player.teleport(lobby);
+                }
             }
         }
     }
@@ -224,7 +233,9 @@ public class WorldPool {
      */
     public void shutdown() {
         for (WorldInstance instance : instances) {
-            if (generateOnStart) {
+            evacuate(instance);
+
+            if (DeathSwapConfig.settings().getWorlds().isGenerateOnStart()) {
                 reset.discardNow(instance);
                 continue;
             }

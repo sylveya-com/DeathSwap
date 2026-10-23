@@ -26,6 +26,9 @@ public class ReloadCommand implements SubCommand {
             if (SoftDependUtil.PACKET_EVENTS_ENABLED && plugin.getPlayerHider() != null) {
                 plugin.getPlayerHider().refreshVisibility();
             }
+            if (plugin.getWorldPool() != null) {
+                plugin.getWorldPool().reload();
+            }
             MessageUtil.send(sender, DeathSwapConfig.messages().getCommands().getConfigReloaded());
         } catch (Exception e) {
             plugin.getLogger().warning("Failed to reload configuration: " + DeathSwapConfig.describeFailure(e));
