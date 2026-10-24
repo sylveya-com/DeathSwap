@@ -196,6 +196,17 @@ public class MatchManager {
         return spectators.contains(uuid);
     }
 
+    /**
+     * Whether the given world belongs to this match (overworld, nether, or end).
+     */
+    public boolean isInMatchWorld(World world) {
+        return plugin.getWorldPool().isMatchWorld(gameWorld, world);
+    }
+
+    public Set<Player> getAlivePlayers() {
+        return deaths.getAlivePlayers(spectators);
+    }
+
     public int getDeaths(UUID uuid) {
         return deaths.get(uuid);
     }
@@ -231,11 +242,11 @@ public class MatchManager {
 
     private void scheduleNextSwap() {
         if (deaths.size() < 2) return;
-        swap.scheduleNext(this::onSwapComplete, deaths::getAlivePlayers);
+        swap.scheduleNext(this::onSwapComplete, this::getAlivePlayers);
     }
 
     private void onSwapComplete() {
-        Set<Player> alive = deaths.getAlivePlayers();
+        Set<Player> alive = getAlivePlayers();
 
         if (alive.size() < 2) {
             checkWinner();
@@ -247,7 +258,7 @@ public class MatchManager {
     }
 
     private void checkWinner() {
-        Set<Player> alive = deaths.getAlivePlayers();
+        Set<Player> alive = getAlivePlayers();
         if (alive.size() > 1) return;
 
         cancelTasks();
@@ -272,7 +283,7 @@ public class MatchManager {
     private void onTimeUp() {
         cancelTasks();
 
-        List<Player> alive = new ArrayList<>(deaths.getAlivePlayers());
+        List<Player> alive = new ArrayList<>(getAlivePlayers());
         Set<Player> leaders = lowestDeathPlayers(alive);
 
         var messages = DeathSwapConfig.messages();

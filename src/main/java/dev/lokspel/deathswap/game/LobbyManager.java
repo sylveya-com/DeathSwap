@@ -5,13 +5,10 @@ import dev.lokspel.deathswap.config.DeathSwapConfig;
 import dev.lokspel.deathswap.util.MessageUtil;
 import dev.lokspel.deathswap.util.PlayerUtil;
 import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -19,7 +16,6 @@ public class LobbyManager {
 
     private final DeathSwap plugin;
     private final Set<UUID> players = new HashSet<>();
-    private final Map<UUID, GameMode> previousGameModes = new HashMap<>();
     private BukkitTask startTask;
     private int remainingCountdown;
 
@@ -30,8 +26,6 @@ public class LobbyManager {
     public void join(Player player) {
         if (!players.add(player.getUniqueId())) return;
 
-        previousGameModes.put(player.getUniqueId(), player.getGameMode());
-        player.setGameMode(GameMode.SURVIVAL);
         MessageUtil.send(player, DeathSwapConfig.messages().getGame().getJoined());
 
         if (players.size() < DeathSwapConfig.settings().getGame().getMinPlayersToStart()) {
@@ -48,7 +42,6 @@ public class LobbyManager {
 
     public void leave(UUID uuid) {
         if (!players.remove(uuid)) return;
-        restoreGameMode(uuid);
         if (players.size() < DeathSwapConfig.settings().getGame().getMinPlayersToStart()) {
             cancelTask();
             showNeedsPlayers();
@@ -69,8 +62,6 @@ public class LobbyManager {
 
     public void clear() {
         cancelTask();
-        players.forEach(this::restoreGameMode);
-        previousGameModes.clear();
         players.clear();
     }
 
@@ -123,12 +114,5 @@ public class LobbyManager {
         for (Player player : getOnlinePlayers()) {
             PlayerUtil.showActionBar(player, msg);
         }
-    }
-
-    private void restoreGameMode(UUID uuid) {
-        Player player = PlayerUtil.getOnlinePlayer(uuid);
-        if (player == null) return;
-        player.setGameMode(previousGameModes.getOrDefault(uuid, GameMode.SURVIVAL));
-        previousGameModes.remove(uuid);
     }
 }

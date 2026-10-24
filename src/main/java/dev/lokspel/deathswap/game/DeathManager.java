@@ -1,9 +1,11 @@
 package dev.lokspel.deathswap.game;
 
+import dev.lokspel.deathswap.config.DeathSwapConfig;
 import dev.lokspel.deathswap.util.PlayerUtil;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -29,8 +31,15 @@ public class DeathManager {
     }
 
     public Set<Player> getAlivePlayers() {
+        return getAlivePlayers(Collections.emptySet());
+    }
+
+    public Set<Player> getAlivePlayers(Set<UUID> spectators) {
+        int maxDeaths = DeathSwapConfig.settings().getGame().getMaxDeaths();
         Set<Player> alive = PlayerUtil.getOnlinePlayers(counts.keySet());
-        alive.removeIf(p -> p.getGameMode() == GameMode.SPECTATOR);
+        alive.removeIf(p -> (spectators != null && spectators.contains(p.getUniqueId()))
+                || (maxDeaths > 0 && counts.getOrDefault(p.getUniqueId(), 0) >= maxDeaths)
+                || p.getGameMode() == GameMode.SPECTATOR);
         return alive;
     }
 

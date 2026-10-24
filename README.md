@@ -10,7 +10,7 @@ Players join a lobby and are sent into a fresh temporary world when the match st
 
 ## » Matches
 
-Before a match starts, players join the configured lobby and wait for the match to begin.
+Before a match starts, players join the matchmaking queue and wait for the countdown. Players can queue from anywhere without being teleported beforehand.
 
 When the match starts:
 
@@ -46,14 +46,14 @@ Multiple matches can run simultaneously, with each match isolated in its own wor
 
 ## » Commands
 
-| Command               | Aliases        | Description                | Permission           |
-| --------------------- | -------------- | -------------------------- | -------------------- |
-| `/deathswap join`     | `/ds join`     | Join the lobby             | —                    |
-| `/deathswap leave`    | `/ds leave`    | Leave the lobby or match   | —                    |
-| `/deathswap start`    | `/ds start`    | Force-start the game       | `deathswap.start`    |
-| `/deathswap stop`     | `/ds stop`     | Stop the game              | `deathswap.stop`     |
-| `/deathswap setlobby` | `/ds setlobby` | Set the lobby location     | `deathswap.setlobby` |
-| `/deathswap reload`   | `/ds reload`   | Reload config and messages | `deathswap.reload`   |
+| Command               | Aliases        | Description                           | Permission           |
+| --------------------- | -------------- | ------------------------------------- | -------------------- |
+| `/deathswap join`     | `/ds join`     | Join the match queue                  | —                    |
+| `/deathswap leave`    | `/ds leave`    | Leave the queue or match              | —                    |
+| `/deathswap start`    | `/ds start`    | Force-start the game                  | `deathswap.start`    |
+| `/deathswap stop`     | `/ds stop`     | Stop the game                         | `deathswap.stop`     |
+| `/deathswap setlobby` | `/ds setlobby` | Set the post-match return location    | `deathswap.setlobby` |
+| `/deathswap reload`   | `/ds reload`   | Reload config and messages            | `deathswap.reload`   |
 
 ## » Tab List Hiding
 

@@ -85,11 +85,13 @@ public class SwapManager {
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled()) return;
 
+        Collections.shuffle(playerList);
+
         var locations = new ArrayList<Location>(playerList.size());
         for (Player player : playerList) {
             locations.add(player.getLocation());
         }
-        Collections.shuffle(locations);
+        Collections.rotate(locations, 1);
 
         for (Player player : playerList) {
             if (goSound != null) {

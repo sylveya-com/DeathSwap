@@ -40,9 +40,9 @@ public final class PlayerTeleportListener implements Listener {
             return;
         }
 
-        // Allow teleports to any world owned by the game world pool
+        // Allow teleports to any world owned by this match
         // (overworld, nether, and end dimensions of the same match).
-        if (plugin.getWorldPool().isGameWorld(to.getWorld())) {
+        if (match.isInMatchWorld(to.getWorld())) {
             return;
         }
 

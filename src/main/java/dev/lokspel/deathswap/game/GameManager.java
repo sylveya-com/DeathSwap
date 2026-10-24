@@ -6,6 +6,7 @@ import dev.lokspel.deathswap.util.MessageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,6 +21,7 @@ public class GameManager {
     private final LobbyManager lobby;
     private final Map<UUID, MatchManager> matches = new ConcurrentHashMap<>();
     private boolean busyNotified;
+    private BukkitTask retryTask;
 
     public GameManager(DeathSwap plugin) {
         this.plugin = plugin;
@@ -74,7 +76,7 @@ public class GameManager {
     }
 
     public boolean forceStart() {
-        if (lobby.size() < 2) return false;
+        if (lobby.size() < DeathSwapConfig.settings().getGame().getMinPlayersToStart()) return false;
         if (!DeathSwapConfig.backed().getLobby().isSet()) return false;
 
         lobby.cancelTask();
@@ -83,8 +85,13 @@ public class GameManager {
     }
 
     private void createMatch() {
+        cancelRetryTask();
+
         Set<Player> players = lobby.getOnlinePlayers();
-        if (players.size() < 2) return;
+        if (players.size() < DeathSwapConfig.settings().getGame().getMinPlayersToStart()) {
+            busyNotified = false;
+            return;
+        }
 
         // Acquire a fully spawn-ready world up front (free + loaded + spawn
         // area generated). If none is ready yet, keep players in the lobby,
@@ -100,7 +107,7 @@ public class GameManager {
                 MessageUtil.broadcast(players, msg);
                 busyNotified = true;
             }
-            Bukkit.getScheduler().runTaskLater(plugin, this::createMatch, 20L);
+            retryTask = Bukkit.getScheduler().runTaskLater(plugin, this::createMatch, 20L);
             return;
         }
         busyNotified = false;
@@ -120,11 +127,20 @@ public class GameManager {
     }
 
     public void stop() {
+        cancelRetryTask();
+        busyNotified = false;
         for (MatchManager m : List.copyOf(matches.values())) {
             m.stop();
         }
         matches.clear();
         lobby.clear();
+    }
+
+    private void cancelRetryTask() {
+        if (retryTask != null) {
+            retryTask.cancel();
+            retryTask = null;
+        }
     }
 
     public MatchManager findMatchByPlayer(UUID uuid) {
@@ -147,6 +163,6 @@ public class GameManager {
     }
 
     public boolean hasActivity() {
-        return !matches.isEmpty() || lobby.size() > 0;
+        return !matches.isEmpty() || lobby.size() > 0 || retryTask != null;
     }
 }

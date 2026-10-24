@@ -8,14 +8,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-/**
- * Resets a released world instance: unloads its world, clears the flat set of
- * {@code .mca} chunk files off the main thread, then marks the instance free
- * and lets it be reloaded on the server thread.
- */
 final class WorldReset {
+
+    private static final Set<String> WORLD_DATA_FOLDERS =
+            Set.of("region", "entities", "poi");
 
     private final DeathSwap plugin;
 
@@ -30,16 +29,18 @@ final class WorldReset {
      * @param onReloaded run on the main thread after the world is reloaded
      */
     void reset(WorldInstance instance, Runnable onReloaded) {
-        World[] worlds = instance.allWorlds();
-        for (World world : worlds) {
-            Bukkit.unloadWorld(world, false);
+        World[] worlds = unloadAll(instance);
+        if (worlds == null) {
+            return;
         }
-        instance.markResetting();
 
         CompletableFuture.runAsync(() -> {
             for (World world : worlds) {
-                clearRegionFiles(world.getWorldFolder().toPath().resolve("region"));
+                if (world != null) {
+                    clearWorldData(world.getWorldFolder().toPath());
+                }
             }
+
             Bukkit.getScheduler().runTask(plugin, () -> {
                 instance.reset();
                 onReloaded.run();
@@ -58,12 +59,15 @@ final class WorldReset {
      */
     void discard(WorldInstance instance) {
         World[] worlds = unloadAll(instance);
+        if (worlds == null) {
+            return;
+        }
 
         CompletableFuture.runAsync(() -> {
             for (World world : worlds) {
-                if (world == null) continue;
-
-                deleteFolder(world.getWorldFolder().toPath());
+                if (world != null) {
+                    deleteFolder(world.getWorldFolder().toPath());
+                }
             }
         });
     }
@@ -73,10 +77,32 @@ final class WorldReset {
      * already shutting down and the async deletion would never run.
      */
     void discardNow(WorldInstance instance) {
-        for (World world : unloadAll(instance)) {
-            if (world == null) continue;
+        World[] worlds = unloadAll(instance);
+        if (worlds == null) {
+            return;
+        }
 
-            deleteFolder(world.getWorldFolder().toPath());
+        for (World world : worlds) {
+            if (world != null) {
+                deleteFolder(world.getWorldFolder().toPath());
+            }
+        }
+    }
+
+    /**
+     * Synchronously unloads and clears an instance's worlds. Used on shutdown,
+     * where an asynchronous reset would not finish before the server exits.
+     */
+    void resetNow(WorldInstance instance) {
+        World[] worlds = unloadAll(instance);
+        if (worlds == null) {
+            return;
+        }
+
+        for (World world : worlds) {
+            if (world != null) {
+                clearWorldData(world.getWorldFolder().toPath());
+            }
         }
     }
 
@@ -86,40 +112,33 @@ final class WorldReset {
      */
     private World[] unloadAll(WorldInstance instance) {
         World[] worlds = instance.allWorlds();
+        boolean success = true;
 
         for (World world : worlds) {
-            if (world != null) {
-                Bukkit.unloadWorld(world, false);
+            if (world != null && !Bukkit.unloadWorld(world, false)) {
+                plugin.getLogger().warning("Failed to unload game world: " + world.getName());
+                success = false;
             }
+        }
+
+        if (!success) {
+            return null;
         }
 
         instance.markResetting();
         return worlds;
     }
 
-    /**
-     * Synchronously unloads and clears an instance's worlds. Used on shutdown,
-     * where an asynchronous reset would not finish before the server exits.
-     */
-    void clearNow(WorldInstance instance) {
-        for (World world : instance.allWorlds()) {
-            if (world == null) continue;
+    private void clearWorldData(Path worldFolder) {
+        if (!Files.isDirectory(worldFolder)) return;
 
-            Bukkit.unloadWorld(world, false);
-            clearRegionFiles(world.getWorldFolder().toPath().resolve("region"));
-        }
-    }
-
-    private void clearRegionFiles(Path regionFolder) {
-        if (!Files.isDirectory(regionFolder)) return;
-
-        try (var files = Files.list(regionFolder)) {
-            files.forEach(child -> {
-                try {
-                    Files.deleteIfExists(child);
-                } catch (IOException ignored) {
-                }
-            });
+        try (var paths = Files.walk(worldFolder)) {
+            paths.filter(Files::isDirectory)
+                    .filter(path -> WORLD_DATA_FOLDERS.contains(
+                            path.getFileName().toString()
+                    ))
+                    .toList()
+                    .forEach(this::deleteFolder);
         } catch (IOException ignored) {
         }
     }
@@ -128,12 +147,13 @@ final class WorldReset {
         if (!Files.isDirectory(folder)) return;
 
         try (var paths = Files.walk(folder)) {
-            paths.sorted(Comparator.reverseOrder()).forEach(child -> {
-                try {
-                    Files.deleteIfExists(child);
-                } catch (IOException ignored) {
-                }
-            });
+            paths.sorted(Comparator.reverseOrder())
+                    .forEach(path -> {
+                        try {
+                            Files.deleteIfExists(path);
+                        } catch (IOException ignored) {
+                        }
+                    });
         } catch (IOException ignored) {
         }
     }
