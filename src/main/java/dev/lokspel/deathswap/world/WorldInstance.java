@@ -54,7 +54,7 @@ final class WorldInstance {
     }
 
     boolean owns(World world) {
-        return world != null && (world == this.world || world == this.nether || world == this.end);
+        return world != null && (world.equals(this.world) || world.equals(this.nether) || world.equals(this.end));
     }
 
     World[] allWorlds() {

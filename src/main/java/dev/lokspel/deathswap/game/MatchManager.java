@@ -21,7 +21,6 @@ import org.bukkit.scoreboard.ScoreboardManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -95,6 +94,13 @@ public class MatchManager {
     public Location onPlayerRespawn(Player player) {
         if (!playerUuids.contains(player.getUniqueId())) return null;
 
+        if (cleanedUp) {
+            Location lobby = DeathSwapConfig.backed().getLobby().toLocation();
+            if (lobby != null) {
+                return lobby;
+            }
+        }
+
         boolean eliminated = spectators.contains(player.getUniqueId());
         if (eliminated) {
             player.setGameMode(GameMode.SPECTATOR);
@@ -103,16 +109,6 @@ public class MatchManager {
 
         Location location = randomSpawn();
         refreshScoreboard();
-
-        if (eliminated) {
-            checkWinner();
-            if (cleanedUp) {
-                Location lobby = DeathSwapConfig.backed().getLobby().toLocation();
-                if (lobby != null) {
-                    return lobby;
-                }
-            }
-        }
         return location;
     }
 
@@ -263,16 +259,19 @@ public class MatchManager {
 
         cancelTasks();
 
-        Player winner = null;
-        var messages = DeathSwapConfig.messages();
-        if (alive.size() == 1) {
-            winner = alive.iterator().next();
+        Player winner = alive.size() == 1 ? alive.iterator().next() : null;
+        if (winner != null) {
+            var messages = DeathSwapConfig.messages();
             broadcast(MessageUtil.format(messages.getGame().getWinner(), "player", winner.getName()));
             broadcastSound(DeathSwapConfig.settings().getSounds().getWin());
             winner.setGameMode(GameMode.SURVIVAL);
         }
 
-        cleanupNow(winner);
+        if (plugin.isEnabled()) {
+            Bukkit.getScheduler().runTask(plugin, () -> cleanupNow(winner));
+        } else {
+            cleanupNow(winner);
+        }
     }
 
     /**
@@ -296,7 +295,11 @@ public class MatchManager {
             broadcast(MessageUtil.format(messages.getGame().getTimeUp()));
         }
 
-        cleanupNow(winner);
+        if (plugin.isEnabled()) {
+            Bukkit.getScheduler().runTask(plugin, () -> cleanupNow(winner));
+        } else {
+            cleanupNow(winner);
+        }
     }
 
     private Set<Player> lowestDeathPlayers(List<Player> players) {
@@ -327,6 +330,9 @@ public class MatchManager {
         scoreboard.remove(playerUuids);
         Location lobby = DeathSwapConfig.backed().getLobby().toLocation();
         for (Player player : getOnlinePlayers()) {
+            if (player.isDead()) {
+                player.spigot().respawn();
+            }
             PlayerState state = states.remove(player.getUniqueId());
             if (state != null) {
                 state.restore(player);
