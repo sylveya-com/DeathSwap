@@ -52,7 +52,6 @@ public class DeathSwap extends JavaPlugin {
     public void onEnable() {
         instance = this;
 
-        getLogger().info("Loading configuration");
         DeathSwapConfig.load(getDataFolder().toPath());
 
         worldPool = new WorldPool(this);
@@ -63,13 +62,9 @@ public class DeathSwap extends JavaPlugin {
             playerHider = new PlayerHider(this);
         }
 
-        getLogger().info("Registering permissions");
         PluginPermission.registerAll();
-
-        getLogger().info("Registering commands");
         new DeathSwapCmd().enable();
 
-        getLogger().info("Registering listeners");
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(new WorldInitListener(this), this);
         pm.registerEvents(new PlayerDeathListener(this), this);
@@ -83,18 +78,15 @@ public class DeathSwap extends JavaPlugin {
         new DeathSwapAPI(this);
 
         if (SoftDependUtil.PLACEHOLDER_API_ENABLED) {
-            getLogger().info("Registering hooks");
             new PlayerExpansion(this, "deathswap").register();
             new PlayerExpansion(this, "ds").register();
         }
 
         fastStatsContext.ready();
-        getLogger().info("Done.");
     }
 
     @Override
     public void onDisable() {
-        getLogger().info("Disabling DeathSwap...");
         PluginPermission.unregisterAll();
         fastStatsContext.shutdown();
         if (gameManager != null) {

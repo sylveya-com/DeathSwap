@@ -56,8 +56,7 @@ public class ReloadSubCmd implements SubCommand {
             }
             MessageUtil.send(sender, DeathSwapConfig.messages().getCommands().getConfigReloaded());
         } catch (Exception e) {
-            plugin.getLogger().warning("Failed to reload configuration: " + DeathSwapConfig.describeFailure(e));
-            sender.sendMessage("§cFailed to reload configuration: " + e.getMessage());
+            MessageUtil.send(sender, "<red>Failed to reload configuration: " + DeathSwapConfig.describeFailure(e));
         }
         return true;
     }
