@@ -6,7 +6,7 @@ softdepend: [PlaceholderAPI, packetevents]
 commands:
   deathswap:
     description: Main DeathSwap command
-    usage: /<command> <start|stop|join|leave|reload|setlobby>
+    usage: /<command> <start|stop|join|leave|reload|set>
     aliases: [ds]
 
 permissions:
@@ -19,6 +19,6 @@ permissions:
   deathswap.reload:
     description: Reload config
     default: op
-  deathswap.setlobby:
+  deathswap.set.lobby:
     description: Set lobby location
     default: op

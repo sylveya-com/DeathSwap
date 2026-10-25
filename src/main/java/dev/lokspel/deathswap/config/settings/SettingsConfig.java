@@ -33,8 +33,4 @@ public class SettingsConfig {
   @Comment("Game world generation and pool settings.")
   @JsonProperty("worlds")
   private WorldsSettings worlds = new WorldsSettings();
-
-  @Comment("Commands executed when a match ends.")
-  @JsonProperty("commands")
-  private CommandsSettings commands = new CommandsSettings();
 }

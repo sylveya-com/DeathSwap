@@ -1,22 +1,9 @@
 package dev.lokspel.deathswap;
 
 import dev.lokspel.deathswap.api.DeathSwapAPI;
-import dev.lokspel.deathswap.util.SoftDependUtil;
-import dev.lokspel.deathswap.util.entityhider.PlayerHider;
-import com.github.retrooper.packetevents.PacketEvents;
-import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
-import dev.faststats.Metrics;
-import dev.faststats.bukkit.BukkitContext;
-import dev.lokspel.deathswap.util.placeholderapi.PlayerExpansion;
-import dev.lokspel.deathswap.command.CommandDispatcher;
-import dev.lokspel.deathswap.command.CommandDispatcher.RegisteredCommand;
-import dev.lokspel.deathswap.command.JoinCommand;
-import dev.lokspel.deathswap.command.LeaveCommand;
-import dev.lokspel.deathswap.command.ReloadCommand;
-import dev.lokspel.deathswap.command.SetLobbyCommand;
-import dev.lokspel.deathswap.command.StartCommand;
-import dev.lokspel.deathswap.command.StopCommand;
+import dev.lokspel.deathswap.commands.deathswap.DeathSwapCmd;
 import dev.lokspel.deathswap.config.DeathSwapConfig;
+import dev.lokspel.deathswap.game.GameManager;
 import dev.lokspel.deathswap.listener.AsyncChatListener;
 import dev.lokspel.deathswap.listener.EntityDamageListener;
 import dev.lokspel.deathswap.listener.PlayerAdvancementDoneListener;
@@ -25,13 +12,18 @@ import dev.lokspel.deathswap.listener.PlayerQuitListener;
 import dev.lokspel.deathswap.listener.PlayerRespawnListener;
 import dev.lokspel.deathswap.listener.PlayerTeleportListener;
 import dev.lokspel.deathswap.listener.WorldInitListener;
-import dev.lokspel.deathswap.game.GameManager;
+import dev.lokspel.deathswap.util.PluginPermission;
+import dev.lokspel.deathswap.util.SoftDependUtil;
+import dev.lokspel.deathswap.util.entityhider.PlayerHider;
+import dev.lokspel.deathswap.util.placeholderapi.PlayerExpansion;
 import dev.lokspel.deathswap.world.WorldPool;
+import com.github.retrooper.packetevents.PacketEvents;
+import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
+import dev.faststats.Metrics;
+import dev.faststats.bukkit.BukkitContext;
 import lombok.Getter;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.util.List;
-import java.util.Objects;
 
 @Getter
 public class DeathSwap extends JavaPlugin {
@@ -60,59 +52,63 @@ public class DeathSwap extends JavaPlugin {
     public void onEnable() {
         instance = this;
 
+        getLogger().info("Loading configuration");
         DeathSwapConfig.load(getDataFolder().toPath());
+
+        worldPool = new WorldPool(this);
+        gameManager = new GameManager(this);
 
         if (SoftDependUtil.PACKET_EVENTS_ENABLED) {
             PacketEvents.getAPI().init();
             playerHider = new PlayerHider(this);
         }
 
-        getServer().getPluginManager().registerEvents(new WorldInitListener(this), this);
-        worldPool = new WorldPool(this);
-        gameManager = new GameManager(this);
+        getLogger().info("Registering permissions");
+        PluginPermission.registerAll();
 
-        CommandDispatcher dispatcher = new CommandDispatcher(List.of(
-                new RegisteredCommand("start", new StartCommand(this)),
-                new RegisteredCommand("stop", new StopCommand(this)),
-                new RegisteredCommand("join", new JoinCommand(this)),
-                new RegisteredCommand("leave", new LeaveCommand(this)),
-                new RegisteredCommand("reload", new ReloadCommand(this)),
-                new RegisteredCommand("setlobby", new SetLobbyCommand(this))
-        ));
-        var deathswapCmd = Objects.requireNonNull(getCommand("deathswap"));
-        deathswapCmd.setExecutor(dispatcher);
-        deathswapCmd.setTabCompleter(dispatcher);
+        getLogger().info("Registering commands");
+        new DeathSwapCmd().enable();
 
-        getServer().getPluginManager().registerEvents(new PlayerDeathListener(this), this);
-        getServer().getPluginManager().registerEvents(new PlayerQuitListener(this), this);
-        getServer().getPluginManager().registerEvents(new AsyncChatListener(this), this);
-        getServer().getPluginManager().registerEvents(new PlayerAdvancementDoneListener(this), this);
-        getServer().getPluginManager().registerEvents(new EntityDamageListener(this), this);
-        getServer().getPluginManager().registerEvents(new PlayerRespawnListener(this), this);
-        getServer().getPluginManager().registerEvents(new PlayerTeleportListener(this), this);
+        getLogger().info("Registering listeners");
+        PluginManager pm = getServer().getPluginManager();
+        pm.registerEvents(new WorldInitListener(this), this);
+        pm.registerEvents(new PlayerDeathListener(this), this);
+        pm.registerEvents(new PlayerQuitListener(this), this);
+        pm.registerEvents(new AsyncChatListener(this), this);
+        pm.registerEvents(new PlayerAdvancementDoneListener(this), this);
+        pm.registerEvents(new EntityDamageListener(this), this);
+        pm.registerEvents(new PlayerRespawnListener(this), this);
+        pm.registerEvents(new PlayerTeleportListener(this), this);
 
         new DeathSwapAPI(this);
 
         if (SoftDependUtil.PLACEHOLDER_API_ENABLED) {
+            getLogger().info("Registering hooks");
             new PlayerExpansion(this, "deathswap").register();
             new PlayerExpansion(this, "ds").register();
         }
 
         fastStatsContext.ready();
+        getLogger().info("Done.");
     }
 
     @Override
     public void onDisable() {
+        getLogger().info("Disabling DeathSwap...");
+        PluginPermission.unregisterAll();
         fastStatsContext.shutdown();
         if (gameManager != null) {
-            gameManager.stop();
+            gameManager.disable();
+            gameManager = null;
         }
         if (worldPool != null) {
-            worldPool.shutdown();
+            worldPool.disable();
+            worldPool = null;
         }
         if (SoftDependUtil.PACKET_EVENTS_ENABLED) {
             PacketEvents.getAPI().terminate();
         }
+        getLogger().info("Disabled.");
     }
 
 }

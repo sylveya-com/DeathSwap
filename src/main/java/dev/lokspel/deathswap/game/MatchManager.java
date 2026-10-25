@@ -6,7 +6,6 @@ import dev.lokspel.deathswap.api.event.MatchEndEvent;
 import dev.lokspel.deathswap.config.DeathSwapConfig;
 import dev.lokspel.deathswap.scoreboard.MatchScoreboard;
 import dev.lokspel.deathswap.game.player.PlayerState;
-import dev.lokspel.deathswap.util.CommandUtil;
 import dev.lokspel.deathswap.util.MessageUtil;
 import dev.lokspel.deathswap.util.PlayerUtil;
 import dev.lokspel.deathswap.util.SoundUtil;
@@ -104,7 +103,6 @@ public class MatchManager {
         boolean eliminated = spectators.contains(player.getUniqueId());
         if (eliminated) {
             player.setGameMode(GameMode.SPECTATOR);
-            CommandUtil.run(DeathSwapConfig.settings().getCommands().getOnMatchEnd(), player);
         }
 
         Location location = randomSpawn();
@@ -170,10 +168,6 @@ public class MatchManager {
             if (lobby != null) {
                 player.teleport(lobby);
             }
-        }
-
-        if (!eliminated) {
-            CommandUtil.run(DeathSwapConfig.settings().getCommands().getOnMatchEnd(), player);
         }
 
         refreshScoreboard();
@@ -320,6 +314,7 @@ public class MatchManager {
 
     public void stop() {
         cancelTasks();
+        broadcast(MessageUtil.format(DeathSwapConfig.messages().getGame().getStopped()));
         cleanupNow(null);
     }
 
@@ -339,9 +334,6 @@ public class MatchManager {
             }
             if (lobby != null) {
                 player.teleport(lobby);
-            }
-            if (!spectators.contains(player.getUniqueId())) {
-                CommandUtil.run(DeathSwapConfig.settings().getCommands().getOnMatchEnd(), player);
             }
         }
 

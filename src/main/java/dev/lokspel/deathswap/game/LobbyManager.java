@@ -109,8 +109,8 @@ public class LobbyManager {
         var messages = DeathSwapConfig.messages();
         var msg = MessageUtil.format(
                 messages.getGame().getNeedsPlayers(),
-                "current", String.valueOf(players.size()),
-                "needed", String.valueOf(required));
+                "current", players.size(),
+                "needed", required);
         for (Player player : getOnlinePlayers()) {
             PlayerUtil.showActionBar(player, msg);
         }

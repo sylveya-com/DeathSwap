@@ -2,6 +2,7 @@ package dev.lokspel.deathswap.world;
 
 import dev.lokspel.deathswap.DeathSwap;
 import dev.lokspel.deathswap.config.DeathSwapConfig;
+import dev.lokspel.deathswap.util.Disableable;
 import dev.lokspel.deathswap.util.ReflectionUtil;
 import lombok.Getter;
 import org.bukkit.Bukkit;
@@ -24,7 +25,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * entirely: every match gets a brand-new world generated when the match starts,
  * so the number of simultaneous matches is not capped by {@code worlds.count}.
  */
-public class WorldPool {
+public class WorldPool implements Disableable {
 
     private static final GameRule<Integer> RESPAWN_RADIUS_RULE =
             ReflectionUtil.gameRuleOrNull("RESPAWN_RADIUS");
@@ -166,6 +167,11 @@ public class WorldPool {
      * <p>With {@code generate-on-start} the world folders are deleted instead
      * of kept, since no match will ever reuse them.
      */
+    @Override
+    public void disable() {
+        shutdown();
+    }
+
     public void shutdown() {
         for (WorldInstance instance : instances) {
             evacuate(instance);

@@ -2,6 +2,7 @@ package dev.lokspel.deathswap.game;
 
 import dev.lokspel.deathswap.DeathSwap;
 import dev.lokspel.deathswap.config.DeathSwapConfig;
+import dev.lokspel.deathswap.util.Disableable;
 import dev.lokspel.deathswap.util.MessageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -15,7 +16,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-public class GameManager {
+public class GameManager implements Disableable {
 
     private final DeathSwap plugin;
     private final LobbyManager lobby;
@@ -129,6 +130,9 @@ public class GameManager {
     public void stop() {
         cancelRetryTask();
         busyNotified = false;
+        if (lobby.size() > 0) {
+            MessageUtil.broadcast(lobby.getOnlinePlayers(), DeathSwapConfig.messages().getGame().getStopped());
+        }
         for (MatchManager m : List.copyOf(matches.values())) {
             m.stop();
         }
@@ -164,5 +168,10 @@ public class GameManager {
 
     public boolean hasActivity() {
         return !matches.isEmpty() || lobby.size() > 0 || retryTask != null;
+    }
+
+    @Override
+    public void disable() {
+        stop();
     }
 }
