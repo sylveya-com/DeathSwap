@@ -55,12 +55,8 @@ public final class PlayerState {
         return new PlayerState(player);
     }
 
-    /**
-     * Prepares a player for a fresh match: survival with full health, food and
-     * cleared status effects. Used after {@link #capture(Player)} so the lobby
-     * state can be restored later.
-     */
     public static void resetForMatch(Player player) {
+        player.getInventory().clear();
         player.setGameMode(GameMode.SURVIVAL);
         player.setHealth(20.0);
         player.setFoodLevel(20);
@@ -100,9 +96,6 @@ public final class PlayerState {
         for (var effect : player.getActivePotionEffects()) {
             player.removePotionEffect(effect.getType());
         }
-
-        for (var effect : this.effects) {
-            player.addPotionEffect(effect);
-        }
+        player.addPotionEffects(this.effects);
     }
 }

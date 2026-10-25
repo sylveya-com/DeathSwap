@@ -5,7 +5,7 @@ import dev.lokspel.deathswap.api.event.MatchStartEvent;
 import dev.lokspel.deathswap.api.event.MatchEndEvent;
 import dev.lokspel.deathswap.config.DeathSwapConfig;
 import dev.lokspel.deathswap.scoreboard.MatchScoreboard;
-import dev.lokspel.deathswap.game.player.PlayerState;
+import dev.lokspel.deathswap.game.player.PlayerStateManager;
 import dev.lokspel.deathswap.util.MessageUtil;
 import dev.lokspel.deathswap.util.PlayerUtil;
 import dev.lokspel.deathswap.util.SoundUtil;
@@ -19,10 +19,8 @@ import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.ScoreboardManager;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,7 +33,7 @@ public class MatchManager {
     private final World gameWorld;
     private final Set<UUID> playerUuids;
     private final Set<UUID> spectators;
-    private final Map<UUID, PlayerState> states;
+    private final PlayerStateManager stateManager;
     private final DeathManager deaths;
     private final SwapManager swap;
     private final MatchScoreboard scoreboard;
@@ -48,7 +46,7 @@ public class MatchManager {
         this.onEnd = onEnd;
         this.playerUuids = ConcurrentHashMap.newKeySet();
         this.spectators = ConcurrentHashMap.newKeySet();
-        this.states = new HashMap<>();
+        this.stateManager = new PlayerStateManager();
         this.deaths = new DeathManager();
         this.swap = new SwapManager(plugin);
         this.scoreboard = new MatchScoreboard();
@@ -62,8 +60,7 @@ public class MatchManager {
 
         for (Player player : players) {
             player.teleport(randomSpawn());
-            states.put(player.getUniqueId(), PlayerState.capture(player));
-            PlayerState.resetForMatch(player);
+            stateManager.capture(player);
         }
 
         deaths.init(playerUuids);
@@ -153,10 +150,7 @@ public class MatchManager {
         playerUuids.remove(player.getUniqueId());
         deaths.remove(player.getUniqueId());
 
-        PlayerState state = states.remove(player.getUniqueId());
-        if (state != null) {
-            state.restore(player);
-        }
+        stateManager.restore(player);
 
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         if (manager != null) {
@@ -328,18 +322,14 @@ public class MatchManager {
             if (player.isDead()) {
                 player.spigot().respawn();
             }
-            PlayerState state = states.remove(player.getUniqueId());
-            if (state != null) {
-                state.restore(player);
-            }
             if (lobby != null) {
                 player.teleport(lobby);
             }
         }
+        stateManager.restoreAll();
 
         plugin.getWorldPool().deleteWorld(gameWorld);
         deaths.clear();
-        states.clear();
         spectators.clear();
         playerUuids.clear();
         onEnd.run();

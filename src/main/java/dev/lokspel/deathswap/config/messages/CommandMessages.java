@@ -14,8 +14,6 @@ import lombok.Setter;
     setterVisibility = JsonAutoDetect.Visibility.NONE
 )
 public class CommandMessages {
-  @JsonProperty("usage")
-  private String usage = "{prefix}<red>Usage: /deathswap <join|leave|start|stop|reload|setlobby>";
 
   @JsonProperty("player-only")
   private String playerOnly = "<red>Only players can use this command.";
@@ -27,7 +25,7 @@ public class CommandMessages {
   private String lobbySet = "{prefix}<green>Lobby location has been set.";
 
   @JsonProperty("lobby-not-set")
-  private String lobbyNotSet = "{prefix}<red>Lobby is not set. Use /deathswap setlobby first.";
+  private String lobbyNotSet = "{prefix}<red>Lobby is not set. Use /deathswap set lobby first.";
 
   @JsonProperty("config-reloaded")
   private String configReloaded = "{prefix}<green>Configuration reloaded successfully.";
