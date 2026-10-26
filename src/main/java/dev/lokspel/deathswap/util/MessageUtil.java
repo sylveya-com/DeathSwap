@@ -13,6 +13,7 @@ import java.util.Collection;
 public final class MessageUtil {
 
     private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
+    private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
 
     private MessageUtil() {}
 
@@ -35,9 +36,10 @@ public final class MessageUtil {
     public static @NotNull Component parse(@NotNull String message) {
         String prefix = DeathSwapConfig.messages().getPrefix();
         String text = replaceAmpersand(message)
+                .replace("<prefix>", prefix != null ? prefix : "")
                 .replace("{prefix}", prefix != null ? prefix : "")
                 .replace("%prefix%", prefix != null ? prefix : "");
-        return MiniMessage.miniMessage().deserialize(text);
+        return MINI_MESSAGE.deserialize(text);
     }
 
     public static @NotNull String format(@NotNull String message) {

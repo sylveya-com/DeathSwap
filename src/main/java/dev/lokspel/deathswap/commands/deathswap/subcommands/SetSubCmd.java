@@ -43,7 +43,10 @@ public class SetSubCmd implements SubCommand {
     @Override
     public @NotNull List<String> tabComplete(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args) throws CommandException, IllegalArgumentException {
         if (args.length == 2) {
-            return tabCompletes;
+            String current = args[1].toLowerCase();
+            return tabCompletes.stream()
+                    .filter(s -> s.toLowerCase().startsWith(current))
+                    .collect(Collectors.toList());
         }
 
         if (args.length >= 3) {
